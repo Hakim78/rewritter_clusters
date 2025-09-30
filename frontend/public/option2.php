@@ -180,19 +180,29 @@ require_once '../includes/header.php';
                 </select>
             </div>
 
-            <!-- Bouton de soumission -->
+            <!-- Boutons de soumission -->
             <div class="flex items-center justify-between pt-6 border-t border-gray-200">
                 <div class="text-sm text-gray-600">
                     <i class="fas fa-clock mr-2"></i>
                     Temps estimé : 4-6 minutes
                 </div>
-                <button 
-                    type="submit" 
-                    class="bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition"
-                >
-                    <i class="fas fa-sync-alt mr-2"></i>
-                    Réécrire et optimiser
-                </button>
+                <div class="space-x-4">
+                    <button
+                        type="button"
+                        id="test-backend-btn"
+                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition"
+                    >
+                        <i class="fas fa-flask mr-2"></i>
+                        Tester Backend
+                    </button>
+                    <button
+                        type="submit"
+                        class="bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition"
+                    >
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        Réécrire et optimiser
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -226,7 +236,7 @@ require_once '../includes/header.php';
                 Toast.show('Veuillez entrer une URL', 'error');
                 return;
             }
-            
+
             // Simuler la preview (à remplacer par un vrai appel API)
             document.getElementById('article-preview').classList.remove('hidden');
             document.getElementById('preview-content').innerHTML = `
@@ -234,7 +244,7 @@ require_once '../includes/header.php';
                 <div class="skeleton h-4 w-full mb-3"></div>
                 <div class="skeleton h-4 w-5/6"></div>
             `;
-            
+
             // Simulation
             setTimeout(() => {
                 document.getElementById('preview-content').innerHTML = `
@@ -246,6 +256,60 @@ require_once '../includes/header.php';
                 `;
             }, 1000);
         });
+
+        // Gestionnaire pour le bouton de test backend
+        const form = document.getElementById('workflow2-form');
+        const testButton = document.getElementById('test-backend-btn');
+        if (testButton) {
+            testButton.addEventListener('click', async function() {
+                // Récupérer les données du formulaire
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                // Ajouter des données de test si les champs sont vides
+                if (!data.article_url) data.article_url = 'https://example.com/article-existant';
+
+                try {
+                    // Désactiver le bouton pendant le test
+                    testButton.disabled = true;
+                    testButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test en cours...';
+
+                    // Appel à l'API de test
+                    const response = await fetch(`${CONFIG.API_URL}/api/workflow2`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.status === 'success') {
+                        Toast.show('Test réussi ! Redirection vers les résultats...', 'success');
+
+                        // Stocker les résultats du test dans sessionStorage
+                        sessionStorage.setItem('testResults', JSON.stringify(result));
+
+                        // Rediriger vers la page de résultats en mode test
+                        setTimeout(() => {
+                            window.location.href = 'result.php?test=1&workflow=2';
+                        }, 1500);
+                    } else {
+                        throw new Error(result.message || 'Erreur lors du test');
+                    }
+
+                } catch (error) {
+                    Toast.show(`Erreur de test: ${error.message}`, 'error');
+                    console.error('Test error:', error);
+                } finally {
+                    // Réactiver le bouton
+                    testButton.disabled = false;
+                    testButton.innerHTML = '<i class="fas fa-flask mr-2"></i>Tester Backend';
+                }
+            });
+        }
     });
 </script>
 

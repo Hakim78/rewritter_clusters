@@ -225,20 +225,30 @@ require_once '../includes/header.php';
                 <p class="text-sm text-gray-500 mt-1">Laissez vide pour laisser l'IA choisir automatiquement</p>
             </div>
 
-            <!-- Bouton de soumission -->
+            <!-- Boutons de soumission -->
             <div class="flex items-center justify-between pt-6 border-t border-gray-200">
                 <div class="text-sm text-gray-600">
                     <i class="fas fa-clock mr-2"></i>
                     Temps estimé : 8-12 minutes
                     <span class="block text-xs mt-1 text-gray-500">Génération de 3 articles complets</span>
                 </div>
-                <button 
-                    type="submit" 
-                    class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition"
-                >
-                    <i class="fas fa-rocket mr-2"></i>
-                    Créer le cluster
-                </button>
+                <div class="space-x-4">
+                    <button
+                        type="button"
+                        id="test-backend-btn"
+                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition"
+                    >
+                        <i class="fas fa-flask mr-2"></i>
+                        Tester Backend
+                    </button>
+                    <button
+                        type="submit"
+                        class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition"
+                    >
+                        <i class="fas fa-rocket mr-2"></i>
+                        Créer le cluster
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -294,23 +304,76 @@ require_once '../includes/header.php';
                 'Création du maillage interne',
                 'Finalisation'
             ];
-            
+
             let currentStep = 0;
             const progressBar = document.getElementById('progress-fill');
             const progressText = document.getElementById('progress-text');
-            
+
             const interval = setInterval(() => {
                 currentStep++;
                 if (currentStep >= steps.length) {
                     clearInterval(interval);
                     return;
                 }
-                
+
                 const progress = (currentStep / steps.length) * 90;
                 progressBar.style.width = progress + '%';
                 progressText.textContent = 'Étape : ' + steps[currentStep];
             }, 15000); // Toutes les 15 secondes
         });
+
+        // Gestionnaire pour le bouton de test backend
+        const testButton = document.getElementById('test-backend-btn');
+        if (testButton) {
+            testButton.addEventListener('click', async function() {
+                // Récupérer les données du formulaire
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                // Ajouter des données de test si les champs sont vides
+                if (!data.article_url) data.article_url = 'https://example.com/article-cluster-principal';
+
+                try {
+                    // Désactiver le bouton pendant le test
+                    testButton.disabled = true;
+                    testButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test en cours...';
+
+                    // Appel à l'API de test
+                    const response = await fetch(`${CONFIG.API_URL}/api/workflow3`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.status === 'success') {
+                        Toast.show('Test réussi ! Redirection vers les résultats...', 'success');
+
+                        // Stocker les résultats du test dans sessionStorage
+                        sessionStorage.setItem('testResults', JSON.stringify(result));
+
+                        // Rediriger vers la page de résultats en mode test
+                        setTimeout(() => {
+                            window.location.href = 'result.php?test=1&workflow=3';
+                        }, 1500);
+                    } else {
+                        throw new Error(result.message || 'Erreur lors du test');
+                    }
+
+                } catch (error) {
+                    Toast.show(`Erreur de test: ${error.message}`, 'error');
+                    console.error('Test error:', error);
+                } finally {
+                    // Réactiver le bouton
+                    testButton.disabled = false;
+                    testButton.innerHTML = '<i class="fas fa-flask mr-2"></i>Tester Backend';
+                }
+            });
+        }
     });
 </script>
 

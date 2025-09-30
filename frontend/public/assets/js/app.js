@@ -86,28 +86,46 @@ class WorkflowManager {
     
     async handleSubmit(event) {
         event.preventDefault();
-        
+
         // Récupérer les données du formulaire
         const formData = new FormData(this.form);
         const data = Object.fromEntries(formData.entries());
-        
+
+        // Traitement spécial pour les arrays (liens)
+        const internalLinks = formData.getAll('internal_links[]').filter(link => link.trim() !== '');
+        const externalLinks = formData.getAll('external_links[]').filter(link => link.trim() !== '');
+
+        if (internalLinks.length > 0) data.internal_links = internalLinks;
+        if (externalLinks.length > 0) data.external_links = externalLinks;
+
+        // Gestion du domaine personnalisé
+        if (data.domain === 'Autre' && data.custom_domain) {
+            data.domain = data.custom_domain;
+        }
+        delete data.custom_domain;
+
         // Validation basique
         if (!this.validateForm(data)) {
             return;
         }
-        
+
         // Afficher le loader
         this.showLoader();
         this.hideResults();
-        
+
         try {
             // Appel à l'API Python
             const result = await APIClient.call(`/api/workflow${this.workflowType}`, data);
-            
+
+            // Check status
+            if (result.status === 'error') {
+                throw new Error(result.error || 'Workflow failed');
+            }
+
             // Afficher les résultats
             this.displayResults(result);
             Toast.show('Article généré avec succès !', 'success');
-            
+
         } catch (error) {
             Toast.show(`Erreur: ${error.message}`, 'error');
             console.error('Workflow error:', error);
@@ -166,6 +184,11 @@ class WorkflowManager {
     }
     
     displaySingleArticle(article) {
+        const seoTitle = article.seo_title || article.title || 'Article généré';
+        const metaDesc = article.meta_description || '';
+        const wordCount = article.word_count || 'N/A';
+        const readabilityScore = article.readability_score || 'N/A';
+
         const html = `
             <div class="bg-white rounded-lg shadow-xl p-8">
                 <div class="flex items-center justify-between mb-6 border-b pb-4">
@@ -177,25 +200,51 @@ class WorkflowManager {
                         <button onclick="copyHTML('article-content-1')" class="btn-secondary">
                             <i class="fas fa-copy mr-2"></i>Copier le HTML
                         </button>
-                        <button onclick="downloadHTML('article-content-1', '${article.title}')" class="btn-secondary">
+                        <button onclick="downloadHTML('article-content-1', '${seoTitle.replace(/'/g, "\\'")}')" class="btn-secondary">
                             <i class="fas fa-download mr-2"></i>Télécharger
                         </button>
                     </div>
                 </div>
-                
+
+                <!-- SEO Title -->
+                ${seoTitle ? `
+                    <div class="mb-4 bg-purple-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-bold mb-2">
+                            <i class="fas fa-heading text-purple-600 mr-2"></i>Titre SEO
+                        </h3>
+                        <p class="text-gray-900 font-semibold">${seoTitle}</p>
+                    </div>
+                ` : ''}
+
+                <!-- Meta description -->
+                ${metaDesc ? `
+                    <div class="mb-4 bg-blue-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-bold mb-2">
+                            <i class="fas fa-file-alt text-blue-600 mr-2"></i>Meta Description
+                        </h3>
+                        <p class="text-gray-700">${metaDesc}</p>
+                    </div>
+                ` : ''}
+
+                <!-- WordPress Excerpt -->
+                ${article.wordpress_excerpt ? `
+                    <div class="mb-4 bg-green-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-bold mb-2">
+                            <i class="fab fa-wordpress text-green-600 mr-2"></i>Extrait WordPress
+                        </h3>
+                        <p class="text-gray-700">${article.wordpress_excerpt}</p>
+                    </div>
+                ` : ''}
+
                 <!-- Métadonnées -->
-                <div class="grid md:grid-cols-3 gap-4 mb-6">
+                <div class="grid md:grid-cols-2 gap-4 mb-6">
                     <div class="bg-purple-50 p-4 rounded-lg">
                         <div class="text-sm text-gray-600 mb-1">Nombre de mots</div>
-                        <div class="text-2xl font-bold text-purple-600">${article.word_count || 'N/A'}</div>
-                    </div>
-                    <div class="bg-blue-50 p-4 rounded-lg">
-                        <div class="text-sm text-gray-600 mb-1">Score SEO</div>
-                        <div class="text-2xl font-bold text-blue-600">${article.seo_score || 'N/A'}/100</div>
+                        <div class="text-2xl font-bold text-purple-600">${wordCount}</div>
                     </div>
                     <div class="bg-green-50 p-4 rounded-lg">
-                        <div class="text-sm text-gray-600 mb-1">Lisibilité</div>
-                        <div class="text-2xl font-bold text-green-600">${article.readability_score || 'N/A'}/100</div>
+                        <div class="text-sm text-gray-600 mb-1">Score de lisibilité</div>
+                        <div class="text-2xl font-bold text-green-600">${readabilityScore}</div>
                     </div>
                 </div>
                 
@@ -226,17 +275,62 @@ class WorkflowManager {
                             <i class="fas fa-code mr-2"></i>Voir le code
                         </button>
                     </h3>
-                    
+
                     <!-- Vue rendue -->
                     <div id="article-content-1" class="article-preview border border-gray-200 p-6 rounded-lg">
                         ${article.html_content}
                     </div>
-                    
+
                     <!-- Vue code -->
                     <div id="code-view-1" class="hidden">
                         <pre class="code-block"><code>${this.escapeHtml(article.html_content)}</code></pre>
                     </div>
                 </div>
+
+                <!-- FAQ JSON Schema -->
+                ${article.faq_json && article.faq_json.length > 0 ? `
+                    <div class="mb-6 bg-indigo-50 p-6 rounded-lg">
+                        <h3 class="text-xl font-bold mb-3 flex items-center">
+                            <i class="fas fa-question-circle text-indigo-600 mr-2"></i>
+                            FAQ (Format JSON)
+                        </h3>
+                        <div class="bg-white p-4 rounded border border-indigo-200">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-sm text-gray-600">${article.faq_json.length} questions</span>
+                                <button onclick="copyToClipboard('faq-json-content')" class="text-sm btn-secondary">
+                                    <i class="fas fa-copy mr-1"></i>Copier JSON
+                                </button>
+                            </div>
+                            <pre id="faq-json-content" class="text-sm bg-gray-50 p-4 rounded overflow-auto max-h-64"><code>${JSON.stringify(article.faq_json, null, 2)}</code></pre>
+                        </div>
+                    </div>
+                ` : ''}
+
+                <!-- Keywords & Entities -->
+                ${article.keywords && (article.keywords.secondary.length > 0 || article.keywords.entities.length > 0) ? `
+                    <div class="mb-6 bg-yellow-50 p-6 rounded-lg">
+                        <h3 class="text-xl font-bold mb-3">
+                            <i class="fas fa-tags text-yellow-600 mr-2"></i>
+                            Mots-clés & Entités
+                        </h3>
+                        ${article.keywords.secondary.length > 0 ? `
+                            <div class="mb-3">
+                                <h4 class="font-semibold text-gray-700 mb-2">Mots-clés secondaires :</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    ${article.keywords.secondary.map(kw => `<span class="px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full text-sm">${kw}</span>`).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${article.keywords.entities.length > 0 ? `
+                            <div>
+                                <h4 class="font-semibold text-gray-700 mb-2">Entités :</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    ${article.keywords.entities.map(entity => `<span class="px-3 py-1 bg-orange-200 text-orange-800 rounded-full text-sm">${entity}</span>`).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
             </div>
         `;
         
@@ -376,11 +470,23 @@ function toggleView(contentId, codeId) {
     }
 }
 
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    const text = element.textContent;
+
+    navigator.clipboard.writeText(text).then(() => {
+        Toast.show('Contenu copié dans le presse-papiers !', 'success');
+    }).catch(err => {
+        Toast.show('Erreur lors de la copie', 'error');
+        console.error('Copy error:', err);
+    });
+}
+
 // Menu mobile toggle
 document.addEventListener('DOMContentLoaded', function() {
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const mobileMenu = document.getElementById('mobile-menu');
-    
+
     if (mobileMenuBtn && mobileMenu) {
         mobileMenuBtn.addEventListener('click', function() {
             mobileMenu.classList.toggle('hidden');

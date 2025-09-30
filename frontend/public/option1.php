@@ -65,9 +65,9 @@ require_once '../includes/header.php';
                     <i class="fas fa-tag text-purple-600 mr-2"></i>
                     Domaine / Thématique <span class="text-red-500">*</span>
                 </label>
-                <select 
-                    id="domain" 
-                    name="domain" 
+                <select
+                    id="domain"
+                    name="domain"
                     required
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                 >
@@ -84,6 +84,18 @@ require_once '../includes/header.php';
                     <option value="Autre">Autre</option>
                 </select>
                 <p class="text-sm text-gray-500 mt-1">Le secteur d'activité principal</p>
+
+                <!-- Champ personnalisé pour "Autre" -->
+                <div id="custom-domain" class="hidden mt-3">
+                    <input
+                        type="text"
+                        id="custom_domain_text"
+                        name="custom_domain"
+                        placeholder="Précisez votre secteur d'activité..."
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                    />
+                    <p class="text-sm text-gray-500 mt-1">Décrivez votre secteur d'activité en quelques mots</p>
+                </div>
             </div>
 
             <!-- Guideline -->
@@ -120,55 +132,82 @@ require_once '../includes/header.php';
                 <p class="text-sm text-gray-500 mt-1">Le mot-clé SEO principal à cibler</p>
             </div>
 
-            <!-- Maillage interne -->
-            <div class="bg-purple-50 p-4 rounded-lg">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <label for="internal_linking" class="font-bold text-gray-700 flex items-center">
-                            <i class="fas fa-link text-purple-600 mr-2"></i>
-                            Ajouter du maillage interne
-                        </label>
-                        <p class="text-sm text-gray-600 mt-1">Suggérer des liens vers d'autres pages de votre site</p>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="internal_linking" name="internal_linking" value="1" checked>
-                        <span class="toggle-slider"></span>
+            <!-- Gestion des liens -->
+            <div class="bg-purple-50 p-6 rounded-lg">
+                <h4 class="font-bold text-gray-900 mb-4">
+                    <i class="fas fa-link text-purple-600 mr-2"></i>
+                    Maillage de liens (optionnel)
+                </h4>
+                <p class="text-sm text-gray-600 mb-4">Ajoutez des URLs pour enrichir votre article avec des liens internes et externes</p>
+
+                <!-- Liens internes -->
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">
+                        <i class="fas fa-home text-blue-600 mr-1"></i>
+                        Liens internes (vers votre site)
                     </label>
+                    <div id="internal-links-container">
+                        <div class="flex gap-2 mb-2">
+                            <input
+                                type="url"
+                                name="internal_links[]"
+                                placeholder="https://votre-site.com/autre-page"
+                                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                            <button type="button" onclick="addLinkField('internal')" class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500">Pages de votre site à mentionner dans l'article</p>
+                </div>
+
+                <!-- Liens externes -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">
+                        <i class="fas fa-external-link-alt text-green-600 mr-1"></i>
+                        Liens externes (sources, références)
+                    </label>
+                    <div id="external-links-container">
+                        <div class="flex gap-2 mb-2">
+                            <input
+                                type="url"
+                                name="external_links[]"
+                                placeholder="https://site-externe.com/ressource"
+                                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            />
+                            <button type="button" onclick="addLinkField('external')" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500">Sources externes, études, outils à référencer</p>
                 </div>
             </div>
 
-            <!-- Longueur souhaitée -->
-            <div>
-                <label for="word_count" class="block text-sm font-bold text-gray-700 mb-2">
-                    <i class="fas fa-text-width text-purple-600 mr-2"></i>
-                    Longueur souhaitée (optionnel)
-                </label>
-                <select 
-                    id="word_count" 
-                    name="word_count"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-                >
-                    <option value="">Automatique (basé sur le sujet)</option>
-                    <option value="800">Court (~800 mots)</option>
-                    <option value="1500">Moyen (~1500 mots)</option>
-                    <option value="2500">Long (~2500 mots)</option>
-                    <option value="4000">Très long (~4000 mots)</option>
-                </select>
-            </div>
-
-            <!-- Bouton de soumission -->
+            <!-- Boutons de soumission -->
             <div class="flex items-center justify-between pt-6 border-t border-gray-200">
                 <div class="text-sm text-gray-600">
                     <i class="fas fa-clock mr-2"></i>
                     Temps estimé : 3-5 minutes
                 </div>
-                <button 
-                    type="submit" 
-                    class="btn-primary"
-                >
-                    <i class="fas fa-magic mr-2"></i>
-                    Générer l'article
-                </button>
+                <div class="space-x-4">
+                    <button
+                        type="button"
+                        id="test-backend-btn"
+                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition"
+                    >
+                        <i class="fas fa-flask mr-2"></i>
+                        Tester Backend
+                    </button>
+                    <button
+                        type="submit"
+                        class="btn-primary"
+                    >
+                        <i class="fas fa-magic mr-2"></i>
+                        Générer l'article
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -195,13 +234,13 @@ require_once '../includes/header.php';
     // Initialiser le workflow manager pour l'option 1
     document.addEventListener('DOMContentLoaded', function() {
         new WorkflowManager(1);
-        
+
         // Animation de la barre de progression pendant le chargement
         const form = document.getElementById('workflow1-form');
         form.addEventListener('submit', function() {
             let progress = 30;
             const progressBar = document.getElementById('progress-fill');
-            
+
             const interval = setInterval(() => {
                 progress += Math.random() * 10;
                 if (progress >= 95) {
@@ -211,7 +250,118 @@ require_once '../includes/header.php';
                 progressBar.style.width = progress + '%';
             }, 1000);
         });
+
+        // Gestion du champ domaine personnalisé
+        const domainSelect = document.getElementById('domain');
+        const customDomainDiv = document.getElementById('custom-domain');
+        const customDomainInput = document.getElementById('custom_domain_text');
+
+        domainSelect.addEventListener('change', function() {
+            if (this.value === 'Autre') {
+                customDomainDiv.classList.remove('hidden');
+                customDomainInput.required = true;
+            } else {
+                customDomainDiv.classList.add('hidden');
+                customDomainInput.required = false;
+                customDomainInput.value = '';
+            }
+        });
+
+        // Gestionnaire pour le bouton de test backend
+        const testButton = document.getElementById('test-backend-btn');
+        if (testButton) {
+            testButton.addEventListener('click', async function() {
+                // Récupérer les données du formulaire
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                // Traitement spécial pour les arrays (liens)
+                const internalLinks = formData.getAll('internal_links[]').filter(link => link.trim() !== '');
+                const externalLinks = formData.getAll('external_links[]').filter(link => link.trim() !== '');
+
+                if (internalLinks.length > 0) data.internal_links = internalLinks;
+                if (externalLinks.length > 0) data.external_links = externalLinks;
+
+                // Gestion du domaine personnalisé
+                if (data.domain === 'Autre' && data.custom_domain) {
+                    data.domain = data.custom_domain;
+                }
+
+                // Ajouter des données de test si les champs sont vides
+                if (!data.site_url) data.site_url = 'https://example.com';
+                if (!data.domain) data.domain = 'Marketing Digital';
+                if (!data.keyword) data.keyword = 'test frontend backend communication';
+                if (!data.guideline) data.guideline = 'Test de communication entre le frontend et le backend Python Flask';
+
+                try {
+                    // Désactiver le bouton pendant le test
+                    testButton.disabled = true;
+                    testButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test en cours...';
+
+                    // Appel à l\'API de test
+                    const response = await fetch(`${CONFIG.API_URL}/api/test-post`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.status === 'success') {
+                        Toast.show('Test réussi ! Redirection vers les résultats...', 'success');
+
+                        // Stocker les résultats du test dans sessionStorage
+                        sessionStorage.setItem('testResults', JSON.stringify(result));
+
+                        // Rediriger vers la page de résultats en mode test
+                        setTimeout(() => {
+                            window.location.href = 'result.php?test=1&workflow=1';
+                        }, 1500);
+                    } else {
+                        throw new Error(result.message || 'Erreur lors du test');
+                    }
+
+                } catch (error) {
+                    Toast.show(`Erreur de test: ${error.message}`, 'error');
+                    console.error('Test error:', error);
+                } finally {
+                    // Réactiver le bouton
+                    testButton.disabled = false;
+                    testButton.innerHTML = '<i class="fas fa-flask mr-2"></i>Tester Backend';
+                }
+            });
+        }
     });
+
+    // Fonction pour ajouter des champs de liens dynamiquement
+    function addLinkField(type) {
+        const container = document.getElementById(`${type}-links-container`);
+        const color = type === 'internal' ? 'blue' : 'green';
+
+        const newField = document.createElement('div');
+        newField.className = 'flex gap-2 mb-2';
+        newField.innerHTML = `
+            <input
+                type="url"
+                name="${type}_links[]"
+                placeholder="${type === 'internal' ? 'https://votre-site.com/autre-page' : 'https://site-externe.com/ressource'}"
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${color}-500"
+            />
+            <button type="button" onclick="removeLinkField(this)" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                <i class="fas fa-minus"></i>
+            </button>
+        `;
+
+        container.appendChild(newField);
+    }
+
+    // Fonction pour supprimer un champ de lien
+    function removeLinkField(button) {
+        button.parentElement.remove();
+    }
 </script>
 
 <?php require_once '../includes/footer.php'; ?>
