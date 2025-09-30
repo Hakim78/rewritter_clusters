@@ -109,29 +109,14 @@ class WorkflowManager {
             return;
         }
 
-        // Afficher le loader
-        this.showLoader();
-        this.hideResults();
+        // Store form data in sessionStorage
+        sessionStorage.setItem('workflowFormData', JSON.stringify(data));
 
-        try {
-            // Appel à l'API Python
-            const result = await APIClient.call(`/api/workflow${this.workflowType}`, data);
-
-            // Check status
-            if (result.status === 'error') {
-                throw new Error(result.error || 'Workflow failed');
-            }
-
-            // Afficher les résultats
-            this.displayResults(result);
-            Toast.show('Article généré avec succès !', 'success');
-
-        } catch (error) {
-            Toast.show(`Erreur: ${error.message}`, 'error');
-            console.error('Workflow error:', error);
-        } finally {
-            this.hideLoader();
-        }
+        // Redirect to loading page
+        Toast.show('Redirection vers la génération...', 'info');
+        setTimeout(() => {
+            window.location.href = `loading.php?workflow=${this.workflowType}`;
+        }, 500);
     }
     
     validateForm(data) {

@@ -1,9 +1,10 @@
 """
 Workflow Manager for SEO Article Generation
-Orchestrates the 3-step process:
+Orchestrates the 4-step process:
 1. Website Scraping
 2. Content Analysis (LLM)
 3. Article Generation (LLM)
+4. Image Generation (Ideogram)
 """
 
 import os
@@ -15,6 +16,7 @@ from datetime import datetime
 from .steps.website_scraper import WebsiteScraper
 from .steps.content_analyzer import ContentAnalyzer
 from .steps.article_generator import ArticleGenerator
+from .steps.image_generator import ImageGenerator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -27,6 +29,7 @@ class WorkflowManager:
         self.scraper = WebsiteScraper()
         self.analyzer = ContentAnalyzer()
         self.generator = ArticleGenerator()
+        self.image_gen = ImageGenerator()
 
     async def execute_workflow1(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -91,22 +94,46 @@ class WorkflowManager:
             if not generation_result.get('success'):
                 raise Exception(f"Article generation failed: {generation_result.get('error')}")
 
+            # Step 4: Image Generation
+            logger.info("Step 4: Generating featured image...")
+            image_result = await self.image_gen.generate_image(
+                article_data=generation_result['article'],
+                user_requirements={
+                    'site_url': user_data['site_url'],
+                    'domain': user_data['domain'],
+                    'keyword': user_data['keyword'],
+                    'guideline': user_data['guideline']
+                }
+            )
+
+            # Add image to article (even if failed, we provide None)
+            if image_result.get('success'):
+                generation_result['article']['image_url'] = image_result['image_url']
+                generation_result['article']['image_prompt'] = image_result.get('prompt_used', '')
+                logger.info(f"Image generated successfully: {image_result['image_url']}")
+            else:
+                generation_result['article']['image_url'] = None
+                generation_result['article']['image_prompt'] = ''
+                logger.warning(f"Image generation failed: {image_result.get('error')}")
+
             # Compile final result
             final_result = {
                 'workflow_id': workflow_id,
                 'status': 'success',
                 'timestamp': datetime.now().isoformat(),
-                'steps_completed': ['scraping', 'analysis', 'generation'],
+                'steps_completed': ['scraping', 'analysis', 'generation', 'image_generation'],
                 'article': generation_result['article'],
                 'metadata': {
                     'scraping_stats': scraping_result.get('stats', {}),
                     'analysis_insights': analysis_result.get('insights', {}),
-                    'generation_metrics': generation_result.get('metrics', {})
+                    'generation_metrics': generation_result.get('metrics', {}),
+                    'image_generation': image_result if image_result.get('success') else {'success': False, 'error': image_result.get('error')}
                 },
                 'processing_time': {
                     'scraping': scraping_result.get('processing_time'),
                     'analysis': analysis_result.get('processing_time'),
-                    'generation': generation_result.get('processing_time')
+                    'generation': generation_result.get('processing_time'),
+                    'image_generation': image_result.get('processing_time', 0)
                 }
             }
 

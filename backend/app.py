@@ -32,6 +32,9 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 # Initialize workflow manager
 workflow_manager = WorkflowManager()
 
+# Store workflow progress in memory (in production, use Redis or database)
+workflow_progress = {}
+
 # Route de test basique
 @app.route('/api/test', methods=['GET'])
 def test():
@@ -41,6 +44,17 @@ def test():
         'message': 'Backend Python Flask fonctionne correctement!',
         'version': '1.0.0'
     })
+
+@app.route('/api/workflow-progress/<workflow_id>', methods=['GET'])
+def get_workflow_progress(workflow_id):
+    """Get real-time progress of a workflow"""
+    if workflow_id in workflow_progress:
+        return jsonify(workflow_progress[workflow_id])
+    else:
+        return jsonify({
+            'status': 'not_found',
+            'message': 'Workflow not found'
+        }), 404
 
 # Route de test avec données POST
 @app.route('/api/test-post', methods=['POST'])
@@ -125,16 +139,87 @@ def workflow1():
 
         logger.info(f"Processing workflow1 with cleaned data: {data}")
 
-        # Execute real workflow
-        result = workflow_manager.execute_workflow1_sync(data)
+        # Generate workflow ID
+        from datetime import datetime
+        workflow_id = f"wf1_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
 
-        # Check if workflow succeeded
-        if result.get('status') == 'error':
-            logger.error(f"Workflow failed: {result.get('error')}")
-            return jsonify(result), 500
+        # Initialize progress tracking
+        workflow_progress[workflow_id] = {
+            'workflow_id': workflow_id,
+            'status': 'in_progress',
+            'current_step': 1,
+            'total_steps': 4,
+            'progress_percent': 10,
+            'step_details': {
+                'step_1': {'status': 'in_progress', 'name': 'Analyse du site'},
+                'step_2': {'status': 'pending', 'name': 'Analyse stratégique'},
+                'step_3': {'status': 'pending', 'name': 'Rédaction de l\'article'},
+                'step_4': {'status': 'pending', 'name': 'Génération de l\'image'}
+            }
+        }
 
-        logger.info(f"Workflow completed successfully: workflow_id={result.get('workflow_id')}")
-        return jsonify(result)
+        # Progress callback
+        def update_progress(step, status, progress_percent=None):
+            if workflow_id in workflow_progress:
+                workflow_progress[workflow_id]['current_step'] = step
+                workflow_progress[workflow_id]['step_details'][f'step_{step}']['status'] = status
+                if progress_percent:
+                    workflow_progress[workflow_id]['progress_percent'] = progress_percent
+                logger.info(f"Progress update: Workflow {workflow_id} - Step {step} - {status}")
+
+        # Return workflow_id immediately for client to poll
+        import threading
+
+        def execute_workflow_async():
+            try:
+                # Step 1: Scraping
+                update_progress(1, 'in_progress', 10)
+                result = workflow_manager.execute_workflow1_sync(data)
+
+                # Step 1 complete
+                update_progress(1, 'completed', 25)
+                update_progress(2, 'in_progress', 25)
+
+                # Step 2 complete (done inside workflow)
+                update_progress(2, 'completed', 50)
+                update_progress(3, 'in_progress', 50)
+
+                # Step 3 complete
+                update_progress(3, 'completed', 75)
+                update_progress(4, 'in_progress', 75)
+
+                # Step 4 complete
+                update_progress(4, 'completed', 100)
+
+                # Store final result
+                if result.get('status') == 'success':
+                    workflow_progress[workflow_id].update({
+                        'status': 'completed',
+                        'result': result
+                    })
+                else:
+                    workflow_progress[workflow_id].update({
+                        'status': 'error',
+                        'error': result.get('error', 'Unknown error')
+                    })
+
+            except Exception as e:
+                logger.error(f"Workflow {workflow_id} failed: {str(e)}", exc_info=True)
+                workflow_progress[workflow_id].update({
+                    'status': 'error',
+                    'error': str(e)
+                })
+
+        # Start workflow in background thread
+        thread = threading.Thread(target=execute_workflow_async)
+        thread.start()
+
+        # Return workflow ID for polling
+        return jsonify({
+            'status': 'started',
+            'workflow_id': workflow_id,
+            'message': 'Workflow started successfully'
+        })
 
     except Exception as e:
         logger.error(f"Workflow1 endpoint error: {str(e)}", exc_info=True)

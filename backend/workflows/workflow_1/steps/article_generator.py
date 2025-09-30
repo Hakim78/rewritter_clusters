@@ -19,7 +19,7 @@ class ArticleGenerator:
     def __init__(self):
         self.client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
         self.model = "claude-sonnet-4-5-20250929"  # Claude Sonnet 4.5
-        self.max_tokens = 8000
+        self.max_tokens = 16000  # Increased to ensure all sections are generated
 
     async def generate_article(self,
                               scraped_data: Dict[str, Any],

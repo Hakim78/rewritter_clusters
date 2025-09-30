@@ -39,6 +39,7 @@ class Config:
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
     ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')
     PERPLEXITY_API_KEY = os.getenv('PERPLEXITY_API_KEY', '')
+    IDEOGRAM_API_KEY = os.getenv('IDEOGRAM_API_KEY', '')
     
     # API Génération d'images
     REPLICATE_API_TOKEN = os.getenv('REPLICATE_API_TOKEN', '')

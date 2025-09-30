@@ -365,18 +365,272 @@ function displayClusterTestData(testData) {
 }
 
 function displayProductionResults() {
-    // Récupération des vraies données de l'API
-    // Cette fonction sera utilisée quand les vrais workflows seront implémentés
+    // Récupération des vraies données depuis sessionStorage
+    const storedResults = sessionStorage.getItem('workflowResults');
     const resultsContainer = document.getElementById('production-results');
-    resultsContainer.innerHTML = `
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-            <i class="fas fa-construction text-yellow-600 text-3xl mb-4"></i>
-            <h3 class="text-lg font-bold text-yellow-800 mb-2">Mode Production</h3>
-            <p class="text-yellow-700">
-                Les workflows de production seront disponibles après implémentation des algorithmes IA.
-            </p>
+
+    if (!storedResults) {
+        resultsContainer.innerHTML = `
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                <i class="fas fa-exclamation-triangle text-yellow-600 text-3xl mb-4"></i>
+                <h3 class="text-lg font-bold text-yellow-800 mb-2">Aucun résultat trouvé</h3>
+                <p class="text-yellow-700 mb-4">
+                    Aucun résultat de workflow n'a été trouvé. Veuillez relancer la génération.
+                </p>
+                <a href="index.php" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                    Retour à l'accueil
+                </a>
+            </div>
+        `;
+        return;
+    }
+
+    try {
+        const result = JSON.parse(storedResults);
+        console.log('Displaying production results:', result);
+
+        if (result.article) {
+            // Display single article (Workflow 1 or 2)
+            displaySingleProductionArticle(result.article);
+        } else if (result.articles) {
+            // Display cluster (Workflow 3)
+            displayClusterProductionResults(result.articles, result.internal_links);
+        }
+    } catch (error) {
+        console.error('Error displaying results:', error);
+        resultsContainer.innerHTML = `
+            <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                <i class="fas fa-times-circle text-red-600 text-3xl mb-4"></i>
+                <h3 class="text-lg font-bold text-red-800 mb-2">Erreur d'affichage</h3>
+                <p class="text-red-700">
+                    Impossible d'afficher les résultats. ${error.message}
+                </p>
+            </div>
+        `;
+    }
+}
+
+function displaySingleProductionArticle(article) {
+    const seoTitle = article.seo_title || article.title || 'Article généré';
+    const metaDesc = article.meta_description || '';
+    const wordCount = article.word_count || 'N/A';
+    const readabilityScore = article.readability_score || 'N/A';
+
+    const html = `
+        <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
+            <div class="flex items-center justify-between mb-6 border-b pb-4">
+                <h2 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                    Article généré
+                </h2>
+                <div class="space-x-2">
+                    <button onclick="copyHTML('article-content-1')" class="btn-secondary">
+                        <i class="fas fa-copy mr-2"></i>Copier le HTML
+                    </button>
+                    <button onclick="downloadHTML('article-content-1', '${seoTitle.replace(/'/g, "\\'")}')" class="btn-secondary">
+                        <i class="fas fa-download mr-2"></i>Télécharger
+                    </button>
+                </div>
+            </div>
+
+            <!-- SEO Title -->
+            ${seoTitle ? `
+                <div class="mb-4 bg-purple-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-bold mb-2">
+                        <i class="fas fa-heading text-purple-600 mr-2"></i>Titre SEO
+                    </h3>
+                    <p class="text-gray-900 font-semibold">${seoTitle}</p>
+                </div>
+            ` : ''}
+
+            <!-- Meta description -->
+            ${metaDesc ? `
+                <div class="mb-4 bg-blue-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-bold mb-2">
+                        <i class="fas fa-file-alt text-blue-600 mr-2"></i>Meta Description
+                    </h3>
+                    <p class="text-gray-700">${metaDesc}</p>
+                </div>
+            ` : ''}
+
+            <!-- WordPress Excerpt -->
+            ${article.wordpress_excerpt ? `
+                <div class="mb-4 bg-green-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-bold mb-2">
+                        <i class="fab fa-wordpress text-green-600 mr-2"></i>Extrait WordPress
+                    </h3>
+                    <p class="text-gray-700">${article.wordpress_excerpt}</p>
+                </div>
+            ` : ''}
+
+            <!-- Métadonnées -->
+            <div class="grid md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-600 mb-1">Nombre de mots</div>
+                    <div class="text-2xl font-bold text-purple-600">${wordCount}</div>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-600 mb-1">Score de lisibilité</div>
+                    <div class="text-2xl font-bold text-green-600">${readabilityScore}</div>
+                </div>
+            </div>
+
+            <!-- Image générée (si disponible) -->
+            ${article.image_url ? `
+                <div class="mb-6 bg-gradient-to-r from-pink-50 to-purple-50 p-6 rounded-lg border border-pink-200">
+                    <h3 class="text-xl font-bold mb-3 flex items-center justify-between">
+                        <span>
+                            <i class="fas fa-image text-pink-600 mr-2"></i>
+                            Image générée par IA
+                        </span>
+                        <a href="${article.image_url}" download target="_blank" class="text-sm btn-secondary">
+                            <i class="fas fa-download mr-2"></i>Télécharger l'image
+                        </a>
+                    </h3>
+                    <div class="bg-white p-4 rounded-lg">
+                        <img src="${article.image_url}" alt="${seoTitle}" class="w-full rounded-lg shadow-lg mb-3">
+                        ${article.image_prompt ? `
+                            <details class="mt-3">
+                                <summary class="cursor-pointer text-sm text-gray-600 hover:text-gray-900">
+                                    <i class="fas fa-info-circle mr-1"></i>Voir le prompt utilisé
+                                </summary>
+                                <div class="mt-2 p-3 bg-gray-50 rounded text-sm text-gray-700">
+                                    ${article.image_prompt}
+                                </div>
+                            </details>
+                        ` : ''}
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Contenu HTML -->
+            <div class="mb-6">
+                <h3 class="text-xl font-bold mb-3 flex items-center justify-between">
+                    <span>Aperçu de l'article</span>
+                    <button onclick="toggleView('article-content-1', 'code-view-1')" class="text-sm btn-secondary">
+                        <i class="fas fa-code mr-2"></i>Voir le code
+                    </button>
+                </h3>
+
+                <!-- Vue rendue -->
+                <div id="article-content-1" class="article-preview border border-gray-200 p-6 rounded-lg">
+                    ${article.html_content}
+                </div>
+
+                <!-- Vue code -->
+                <div id="code-view-1" class="hidden">
+                    <pre class="code-block"><code>${escapeHtml(article.html_content)}</code></pre>
+                </div>
+            </div>
+
+            <!-- FAQ JSON Schema -->
+            ${article.faq_json && article.faq_json.length > 0 ? `
+                <div class="mb-6 bg-indigo-50 p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-3 flex items-center">
+                        <i class="fas fa-question-circle text-indigo-600 mr-2"></i>
+                        FAQ (Format JSON)
+                    </h3>
+                    <div class="bg-white p-4 rounded border border-indigo-200">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-sm text-gray-600">${article.faq_json.length} questions</span>
+                            <button onclick="copyToClipboard('faq-json-content')" class="text-sm btn-secondary">
+                                <i class="fas fa-copy mr-1"></i>Copier JSON
+                            </button>
+                        </div>
+                        <pre id="faq-json-content" class="text-sm bg-gray-50 p-4 rounded overflow-auto max-h-64"><code>${JSON.stringify(article.faq_json, null, 2)}</code></pre>
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Keywords & Entities -->
+            ${article.keywords && (article.keywords.secondary.length > 0 || article.keywords.entities.length > 0) ? `
+                <div class="mb-6 bg-yellow-50 p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-3">
+                        <i class="fas fa-tags text-yellow-600 mr-2"></i>
+                        Mots-clés & Entités
+                    </h3>
+                    ${article.keywords.secondary.length > 0 ? `
+                        <div class="mb-3">
+                            <h4 class="font-semibold text-gray-700 mb-2">Mots-clés secondaires :</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${article.keywords.secondary.map(kw => `<span class="px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full text-sm">${kw}</span>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    ${article.keywords.entities.length > 0 ? `
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Entités :</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${article.keywords.entities.map(entity => `<span class="px-3 py-1 bg-orange-200 text-orange-800 rounded-full text-sm">${entity}</span>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            ` : ''}
         </div>
     `;
+
+    document.getElementById('production-results').innerHTML = html;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function toggleView(contentId, codeId) {
+    const content = document.getElementById(contentId);
+    const code = document.getElementById(codeId);
+
+    if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        code.classList.add('hidden');
+    } else {
+        content.classList.add('hidden');
+        code.classList.remove('hidden');
+    }
+}
+
+function copyHTML(elementId) {
+    const element = document.getElementById(elementId);
+    const html = element.innerHTML;
+
+    navigator.clipboard.writeText(html).then(() => {
+        Toast.show('HTML copié dans le presse-papiers !', 'success');
+    }).catch(err => {
+        Toast.show('Erreur lors de la copie', 'error');
+        console.error('Copy error:', err);
+    });
+}
+
+function downloadHTML(elementId, filename) {
+    const element = document.getElementById(elementId);
+    const html = element.innerHTML;
+
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    Toast.show('HTML téléchargé !', 'success');
+}
+
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    const text = element.textContent;
+
+    navigator.clipboard.writeText(text).then(() => {
+        Toast.show('Contenu copié dans le presse-papiers !', 'success');
+    }).catch(err => {
+        Toast.show('Erreur lors de la copie', 'error');
+        console.error('Copy error:', err);
+    });
 }
 
 function copyAllContent() {
