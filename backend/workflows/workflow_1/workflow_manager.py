@@ -31,7 +31,7 @@ class WorkflowManager:
         self.generator = ArticleGenerator()
         self.image_gen = ImageGenerator()
 
-    async def execute_workflow1(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute_workflow1(self, user_data: Dict[str, Any], progress_callback=None) -> Dict[str, Any]:
         """
         Execute the complete workflow for option 1 (Create new article)
 
@@ -43,6 +43,7 @@ class WorkflowManager:
                 - guideline: str
                 - internal_links: List[str] (optional)
                 - external_links: List[str] (optional)
+            progress_callback: Optional callback function(step, status, progress_percent)
 
         Returns:
             Complete article data with metadata
@@ -53,6 +54,9 @@ class WorkflowManager:
         try:
             # Step 1: Website Scraping
             logger.info("Step 1: Scraping website content...")
+            if progress_callback:
+                progress_callback(1, 'in_progress', 10)
+
             scraping_result = await self.scraper.scrape_website(
                 url=user_data['site_url'],
                 internal_links=user_data.get('internal_links', []),
@@ -62,8 +66,14 @@ class WorkflowManager:
             if not scraping_result.get('success'):
                 raise Exception(f"Website scraping failed: {scraping_result.get('error')}")
 
+            if progress_callback:
+                progress_callback(1, 'completed', 25)
+
             # Step 2: Content Analysis
             logger.info("Step 2: Analyzing scraped content...")
+            if progress_callback:
+                progress_callback(2, 'in_progress', 25)
+
             analysis_result = await self.analyzer.analyze_content(
                 scraped_data=scraping_result,
                 user_context={
@@ -76,8 +86,14 @@ class WorkflowManager:
             if not analysis_result.get('success'):
                 raise Exception(f"Content analysis failed: {analysis_result.get('error')}")
 
+            if progress_callback:
+                progress_callback(2, 'completed', 50)
+
             # Step 3: Article Generation
             logger.info("Step 3: Generating optimized article...")
+            if progress_callback:
+                progress_callback(3, 'in_progress', 50)
+
             generation_result = await self.generator.generate_article(
                 scraped_data=scraping_result,
                 analysis_data=analysis_result,
@@ -94,8 +110,14 @@ class WorkflowManager:
             if not generation_result.get('success'):
                 raise Exception(f"Article generation failed: {generation_result.get('error')}")
 
+            if progress_callback:
+                progress_callback(3, 'completed', 75)
+
             # Step 4: Image Generation
             logger.info("Step 4: Generating featured image...")
+            if progress_callback:
+                progress_callback(4, 'in_progress', 75)
+
             image_result = await self.image_gen.generate_image(
                 article_data=generation_result['article'],
                 user_requirements={
@@ -115,6 +137,9 @@ class WorkflowManager:
                 generation_result['article']['image_url'] = None
                 generation_result['article']['image_prompt'] = ''
                 logger.warning(f"Image generation failed: {image_result.get('error')}")
+
+            if progress_callback:
+                progress_callback(4, 'completed', 100)
 
             # Compile final result
             final_result = {
@@ -149,7 +174,7 @@ class WorkflowManager:
                 'timestamp': datetime.now().isoformat()
             }
 
-    def execute_workflow1_sync(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
+    def execute_workflow1_sync(self, user_data: Dict[str, Any], progress_callback=None) -> Dict[str, Any]:
         """Synchronous wrapper for the async workflow"""
         try:
             loop = asyncio.get_event_loop()
@@ -157,4 +182,4 @@ class WorkflowManager:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-        return loop.run_until_complete(self.execute_workflow1(user_data))
+        return loop.run_until_complete(self.execute_workflow1(user_data, progress_callback))

@@ -12,6 +12,9 @@ $testMode = isset($_GET['test']) ? true : false;
 $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
 ?>
 
+<!-- TinyMCE CDN -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
 <div class="max-w-6xl mx-auto">
     <!-- En-tête de la page -->
     <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
@@ -503,23 +506,34 @@ function displaySingleProductionArticle(article) {
                 </div>
             ` : ''}
 
-            <!-- Contenu HTML -->
+            <!-- Contenu HTML avec éditeur WYSIWYG -->
             <div class="mb-6">
                 <h3 class="text-xl font-bold mb-3 flex items-center justify-between">
-                    <span>Aperçu de l'article</span>
-                    <button onclick="toggleView('article-content-1', 'code-view-1')" class="text-sm btn-secondary">
-                        <i class="fas fa-code mr-2"></i>Voir le code
-                    </button>
+                    <span>
+                        <i class="fas fa-edit text-gray-700 mr-2"></i>
+                        Éditeur d'article (modifiable)
+                    </span>
+                    <div class="space-x-2">
+                        <button onclick="getEditorContent()" class="text-sm btn-primary">
+                            <i class="fas fa-save mr-2"></i>Récupérer les modifications
+                        </button>
+                        <button onclick="toggleView('editor-container-1', 'code-view-1')" class="text-sm btn-secondary">
+                            <i class="fas fa-code mr-2"></i>Voir le code HTML
+                        </button>
+                    </div>
                 </h3>
 
-                <!-- Vue rendue -->
-                <div id="article-content-1" class="article-preview border border-gray-200 p-6 rounded-lg">
-                    ${article.html_content}
+                <!-- Éditeur TinyMCE -->
+                <div id="editor-container-1">
+                    <textarea id="article-editor-1" class="w-full">${article.html_content}</textarea>
                 </div>
 
-                <!-- Vue code -->
+                <!-- Vue code HTML -->
                 <div id="code-view-1" class="hidden">
-                    <pre class="code-block"><code>${escapeHtml(article.html_content)}</code></pre>
+                    <pre class="code-block"><code id="code-content-1">${escapeHtml(article.html_content)}</code></pre>
+                    <button onclick="toggleView('editor-container-1', 'code-view-1')" class="mt-3 btn-secondary">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour à l'éditeur
+                    </button>
                 </div>
             </div>
 
@@ -571,6 +585,58 @@ function displaySingleProductionArticle(article) {
     `;
 
     document.getElementById('production-results').innerHTML = html;
+
+    // Initialize TinyMCE after content is added to DOM
+    setTimeout(() => {
+        initTinyMCE();
+    }, 100);
+}
+
+// Initialize TinyMCE editor
+function initTinyMCE() {
+    if (typeof tinymce === 'undefined') {
+        console.error('TinyMCE not loaded');
+        return;
+    }
+
+    tinymce.init({
+        selector: '#article-editor-1',
+        height: 600,
+        menubar: true,
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code fullscreen | removeformat help',
+        content_style: 'body { font-family: Arial, sans-serif; font-size: 14px; }',
+        setup: function(editor) {
+            editor.on('init', function() {
+                console.log('TinyMCE initialized successfully');
+            });
+        }
+    });
+}
+
+// Get modified content from TinyMCE editor
+function getEditorContent() {
+    if (typeof tinymce === 'undefined' || !tinymce.get('article-editor-1')) {
+        Toast.show('Éditeur non initialisé', 'error');
+        return;
+    }
+
+    const content = tinymce.get('article-editor-1').getContent();
+
+    // Update the code view with new content
+    document.getElementById('code-content-1').textContent = content;
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(content).then(() => {
+        Toast.show('Contenu modifié copié dans le presse-papiers !', 'success');
+    }).catch(err => {
+        Toast.show('Erreur lors de la copie', 'error');
+        console.error('Copy error:', err);
+    });
 }
 
 function escapeHtml(text) {

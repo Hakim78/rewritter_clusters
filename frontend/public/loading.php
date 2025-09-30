@@ -259,7 +259,7 @@ async function pollProgress() {
 
             // Update current step indicator
             if (progress.current_step) {
-                document.getElementById('stat-step').textContent = `${progress.current_step}/3`;
+                document.getElementById('stat-step').textContent = `${progress.current_step}/4`;
                 currentStep = progress.current_step;
             }
 

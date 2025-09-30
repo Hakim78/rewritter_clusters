@@ -172,24 +172,8 @@ def workflow1():
 
         def execute_workflow_async():
             try:
-                # Step 1: Scraping
-                update_progress(1, 'in_progress', 10)
-                result = workflow_manager.execute_workflow1_sync(data)
-
-                # Step 1 complete
-                update_progress(1, 'completed', 25)
-                update_progress(2, 'in_progress', 25)
-
-                # Step 2 complete (done inside workflow)
-                update_progress(2, 'completed', 50)
-                update_progress(3, 'in_progress', 50)
-
-                # Step 3 complete
-                update_progress(3, 'completed', 75)
-                update_progress(4, 'in_progress', 75)
-
-                # Step 4 complete
-                update_progress(4, 'completed', 100)
+                # Execute workflow with progress callback
+                result = workflow_manager.execute_workflow1_sync(data, progress_callback=update_progress)
 
                 # Store final result
                 if result.get('status') == 'success':
