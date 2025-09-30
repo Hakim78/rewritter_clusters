@@ -1,5 +1,5 @@
 """
-Backend Python Flask - Application de Test
+Backend Python Flask - Application principale
 Fichier: backend/app.py
 """
 
@@ -8,6 +8,11 @@ from flask_cors import CORS
 import os
 import logging
 from dotenv import load_dotenv
+
+# Importer les routes
+from backend.api.auth import auth_bp
+from backend.api.admin import admin_bp
+from backend.middleware.auth_middleware import token_required
 
 # Import workflow manager
 from workflows.workflow_1.workflow_manager import WorkflowManager
@@ -35,7 +40,15 @@ workflow_manager = WorkflowManager()
 # Store workflow progress in memory (in production, use Redis or database)
 workflow_progress = {}
 
-# Route de test basique
+# ========================================
+# ENREGISTREMENT DES BLUEPRINTS
+# ========================================
+app.register_blueprint(auth_bp)
+app.register_blueprint(admin_bp)
+
+# ========================================
+# ROUTES DE TEST
+# ========================================
 @app.route('/api/test', methods=['GET'])
 def test():
     """Route de test pour vérifier que l'API fonctionne"""
@@ -102,10 +115,13 @@ def test_post():
         'data_type': type(data).__name__
     })
 
-# Route pour workflow 1 (création d'article)
+# ========================================
+# WORKFLOWS (PROTÉGÉS PAR AUTHENTIFICATION)
+# ========================================
 @app.route('/api/workflow1', methods=['POST'])
+@token_required
 def workflow1():
-    """Option 1: Création d'un nouvel article SEO"""
+    """Option 1: Création d'un nouvel article SEO (PROTÉGÉ)"""
     try:
         data = request.get_json()
         logger.info(f"Received workflow1 request with data: {data}")
@@ -212,10 +228,10 @@ def workflow1():
             'message': str(e)
         }), 500
 
-# Route pour workflow 2 (réécriture article)
 @app.route('/api/workflow2', methods=['POST'])
+@token_required
 def workflow2():
-    """Option 2: Réécriture d'un article existant"""
+    """Option 2: Réécriture d'un article existant (PROTÉGÉ)"""
     try:
         data = request.get_json()
         
@@ -245,10 +261,10 @@ def workflow2():
             'message': str(e)
         }), 500
 
-# Route pour workflow 3 (cluster d'articles)
 @app.route('/api/workflow3', methods=['POST'])
+@token_required
 def workflow3():
-    """Option 3: Création d'un cluster de 3 articles"""
+    """Option 3: Création d'un cluster de 3 articles (PROTÉGÉ)"""
     try:
         data = request.get_json()
         
@@ -293,5 +309,33 @@ def workflow3():
             'message': str(e)
         }), 500
 
+# ========================================
+# GESTION DES ERREURS
+# ========================================
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        'success': False,
+        'error': 'Route non trouvée'
+    }), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({
+        'success': False,
+        'error': 'Erreur serveur interne'
+    }), 500
+
 if __name__ == '__main__':
+    print("\n" + "="*50)
+    print("🚀 Backend Flask démarré avec succès!")
+    print("="*50)
+    print("\n📍 Routes disponibles:")
+    print("   • Test API: http://localhost:5001/api/test")
+    print("   • Login: POST http://localhost:5001/api/auth/login")
+    print("   • Verify: POST http://localhost:5001/api/auth/verify")
+    print("   • Admin Users: GET http://localhost:5001/api/admin/users")
+    print("   • Workflows: POST http://localhost:5001/api/workflow1/2/3")
+    print("\n⚠️  Les workflows nécessitent maintenant un token JWT!\n")
+    
     app.run(host='0.0.0.0', port=5001, debug=True)
