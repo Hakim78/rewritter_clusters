@@ -16,58 +16,7 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
 <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 
 <div class="max-w-6xl mx-auto">
-    <!-- En-tête de la page -->
-    <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center">
-                <div class="bg-gradient-to-r from-green-500 to-teal-500 p-4 rounded-lg mr-4">
-                    <i class="fas fa-check-circle text-white text-3xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-4xl font-bold text-gray-900">
-                        <?php if ($testMode): ?>
-                            Résultats du Test
-                        <?php else: ?>
-                            Article Généré
-                        <?php endif; ?>
-                    </h1>
-                    <p class="text-gray-600 mt-2">
-                        <?php if ($testMode): ?>
-                            Test de communication Frontend ↔ Backend réussi
-                        <?php else: ?>
-                            Votre contenu SEO optimisé est prêt
-                        <?php endif; ?>
-                    </p>
-                </div>
-            </div>
-            <div class="space-x-2">
-                <button id="btn-copy-all" class="btn-primary">
-                    <i class="fas fa-copy mr-2"></i>Tout copier
-                </button>
-                <button id="btn-download-all" class="btn-secondary">
-                    <i class="fas fa-download mr-2"></i>Télécharger
-                </button>
-            </div>
-        </div>
-
-        <!-- Badges de status -->
-        <div class="flex flex-wrap gap-2 mt-6">
-            <span class="badge badge-success">
-                <i class="fas fa-server mr-1"></i> Backend OK
-            </span>
-            <span class="badge badge-info">
-                <i class="fas fa-exchange-alt mr-1"></i> Communication OK
-            </span>
-            <?php if (!$testMode): ?>
-                <span class="badge badge-warning">
-                    <i class="fas fa-search mr-1"></i> SEO Optimisé
-                </span>
-                <span class="badge bg-purple-100 text-purple-800">
-                    <i class="fas fa-users mr-1"></i> People-first
-                </span>
-            <?php endif; ?>
-        </div>
-    </div>
+   
 
     <?php if ($testMode): ?>
         <!-- Mode Test: Affichage des données de test -->
