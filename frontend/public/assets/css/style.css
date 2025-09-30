@@ -1,0 +1,311 @@
+/* 
+ * CSS Personnalisé - SEO Article Generator
+ * Fichier: frontend/public/assets/css/style.css
+ */
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Classe d'animation */
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Loader */
+.loader {
+    border: 4px solid #f3f4f6;
+    border-top: 4px solid #7c3aed;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+.loader-small {
+    width: 20px;
+    height: 20px;
+    border-width: 2px;
+}
+
+/* Boutons avec effet hover amélioré */
+.btn-primary {
+    @apply bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    @apply shadow-xl;
+    transform: translateY(-2px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    @apply bg-gray-200 text-gray-700 font-bold py-3 px-6 rounded-lg;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    @apply bg-gray-300;
+}
+
+/* Cards avec effet hover */
+.card-hover {
+    transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Input focus personnalisé */
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #7c3aed;
+    ring: 2px;
+    ring-color: rgba(124, 58, 237, 0.3);
+}
+
+/* Badge de statut */
+.badge {
+    @apply inline-block px-3 py-1 rounded-full text-xs font-semibold;
+}
+
+.badge-success {
+    @apply bg-green-100 text-green-800;
+}
+
+.badge-error {
+    @apply bg-red-100 text-red-800;
+}
+
+.badge-warning {
+    @apply bg-yellow-100 text-yellow-800;
+}
+
+.badge-info {
+    @apply bg-blue-100 text-blue-800;
+}
+
+/* Progress bar */
+.progress-bar {
+    @apply w-full bg-gray-200 rounded-full h-3 overflow-hidden;
+}
+
+.progress-bar-fill {
+    @apply h-full bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full;
+    transition: width 0.3s ease;
+}
+
+/* Code block avec style */
+.code-block {
+    @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+
+/* Toast notification */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 300px;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.toast-success {
+    @apply bg-green-500 text-white p-4 rounded-lg shadow-xl;
+}
+
+.toast-error {
+    @apply bg-red-500 text-white p-4 rounded-lg shadow-xl;
+}
+
+/* Skeleton loader */
+.skeleton {
+    @apply bg-gray-200 rounded;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Toggle switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: #7c3aed;
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+}
+
+/* Tooltip */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #1f2937;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+}
+
+.tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Modal overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9998;
+}
+
+.modal-content {
+    @apply bg-white rounded-lg shadow-2xl p-6 max-w-2xl w-full mx-4;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Article preview */
+.article-preview {
+    @apply bg-white p-6 rounded-lg shadow-md;
+}
+
+.article-preview h1 {
+    @apply text-3xl font-bold mb-4 text-gray-900;
+}
+
+.article-preview h2 {
+    @apply text-2xl font-bold mb-3 mt-6 text-gray-800;
+}
+
+.article-preview h3 {
+    @apply text-xl font-bold mb-2 mt-4 text-gray-700;
+}
+
+.article-preview p {
+    @apply mb-4 text-gray-600 leading-relaxed;
+}
+
+.article-preview ul, .article-preview ol {
+    @apply mb-4 ml-6 text-gray-600;
+}
+
+.article-preview li {
+    @apply mb-2;
+}
+
+.article-preview a {
+    @apply text-purple-600 hover:text-purple-800 underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .toast {
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+    }
+    
+    .modal-content {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+}
+
+/* Scrollbar personnalisé */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #7c3aed;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #6d28d9;
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+}
