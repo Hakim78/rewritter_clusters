@@ -8,7 +8,7 @@
 require_once __DIR__ . '/../config/database.php';
 
 // URL de l'API Python (depuis .env)
-define('PYTHON_API_URL', getenv('PYTHON_API_URL') ?: 'http://localhost:5000');
+define('PYTHON_API_URL', getenv('PYTHON_API_URL') ?: 'http://localhost:5001');
 
 /**
  * Appeler l'API Python
@@ -50,6 +50,263 @@ function callPythonAPI($endpoint, $method = 'GET', $data = null) {
         'http_code' => $httpCode
     ];
 }
+
+/**
+ * ========================================
+ * FONCTIONS D'AUTHENTIFICATION
+ * ========================================
+ */
+
+/**
+ * Vérifier si l'utilisateur est connecté et rediriger sinon
+ * Usage: requireAuth() au début des pages protégées
+ */
+function requireAuth() {
+    if (!isset($_SESSION)) {
+        session_start();
+    }
+    
+    // Vérifier si l'utilisateur est en session
+    if (!isset($_SESSION['user']) || !isset($_SESSION['auth_token'])) {
+        // Sauvegarder l'URL demandée pour redirection après login
+        $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
+        
+        // Déterminer le chemin relatif correct
+        $scriptDir = dirname($_SERVER['SCRIPT_NAME']);
+        
+        if (strpos($scriptDir, '/admin') !== false) {
+            // Depuis /admin/ -> remonter de 2 niveaux
+            header('Location: ../../auth/login.php');
+        } elseif (strpos($scriptDir, '/auth') !== false) {
+            // Déjà dans /auth/
+            header('Location: login.php');
+        } else {
+            // Depuis /public/
+            header('Location: auth/login.php');
+        }
+        exit;
+    }
+    
+    // Vérifier la validité du token JWT
+    $tokenValid = checkAuthToken($_SESSION['auth_token']);
+    
+    if (!$tokenValid) {
+        // Token invalide - déconnecter
+        session_destroy();
+        
+        // Redirection avec même logique
+        $scriptDir = dirname($_SERVER['SCRIPT_NAME']);
+        if (strpos($scriptDir, '/admin') !== false) {
+            header('Location: ../../auth/login.php?error=expired');
+        } elseif (strpos($scriptDir, '/auth') !== false) {
+            header('Location: login.php?error=expired');
+        } else {
+            header('Location: auth/login.php?error=expired');
+        }
+        exit;
+    }
+    
+    return true;
+}
+
+/**
+ * Vérifier si l'utilisateur est authentifié (version mise à jour)
+ */
+function isAuthenticated() {
+    if (!isset($_SESSION)) {
+        session_start();
+    }
+    return isset($_SESSION['user']) && isset($_SESSION['auth_token']);
+}
+
+/**
+ * Vérifier si l'utilisateur est admin et rediriger sinon
+ * Usage: requireAdmin() au début des pages d'administration
+ */
+function requireAdmin() {
+    // D'abord vérifier l'authentification
+    requireAuth();
+    
+    if (!isset($_SESSION)) {
+        session_start();
+    }
+    
+    // Vérifier le rôle admin
+    if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'admin') {
+        // Non autorisé - rediriger vers l'accueil avec message
+        setFlashMessage('error', 'Accès refusé. Vous devez être administrateur.');
+        header('Location: /index.php');
+        exit;
+    }
+    
+    return true;
+}
+
+/**
+ * Vérifier la validité du token JWT auprès du backend Python
+ * 
+ * @param string $token - Token JWT à vérifier
+ * @return bool - True si le token est valide, false sinon
+ */
+function checkAuthToken($token) {
+    if (empty($token)) {
+        return false;
+    }
+    
+    try {
+        // Appel à l'API de vérification
+        $response = callPythonAPI('/api/auth/verify', 'POST', [
+            'token' => $token
+        ]);
+        
+        // Vérifier la réponse
+        if ($response['success'] && 
+            isset($response['data']['success']) && 
+            $response['data']['success'] === true &&
+            isset($response['data']['valid']) &&
+            $response['data']['valid'] === true) {
+            return true;
+        }
+        
+        return false;
+        
+    } catch (Exception $e) {
+        logMessage("Erreur vérification token: " . $e->getMessage(), 'ERROR');
+        return false;
+    }
+}
+
+/**
+ * Récupérer le token d'authentification depuis la session
+ * 
+ * @return string|null - Token JWT ou null si non connecté
+ */
+function getAuthToken() {
+    if (!isset($_SESSION)) {
+        session_start();
+    }
+    
+    return $_SESSION['auth_token'] ?? null;
+}
+
+/**
+ * Vérifier si l'utilisateur actuel est admin
+ * 
+ * @return bool - True si admin, false sinon
+ */
+function isAdmin() {
+    if (!isset($_SESSION)) {
+        session_start();
+    }
+    
+    return isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === 'admin';
+}
+
+/**
+ * Récupérer les informations de l'utilisateur connecté
+ * 
+ * @return array|null - Données utilisateur ou null si non connecté
+ */
+function getAuthUser() {
+    if (!isset($_SESSION)) {
+        session_start();
+    }
+    
+    return $_SESSION['user'] ?? null;
+}
+
+/**
+ * Déconnecter l'utilisateur (appelé depuis logout.php)
+ */
+function logoutUser() {
+    if (!isset($_SESSION)) {
+        session_start();
+    }
+    
+    // Nettoyer toutes les variables de session
+    $_SESSION = array();
+    
+    // Détruire le cookie de session
+    if (isset($_COOKIE[session_name()])) {
+        setcookie(session_name(), '', time() - 42000, '/');
+    }
+    
+    // Détruire la session
+    session_destroy();
+}
+
+/**
+ * Appeler l'API Python avec authentification automatique
+ * Version améliorée de callPythonAPI() qui ajoute le token automatiquement
+ * 
+ * @param string $endpoint - Endpoint de l'API
+ * @param string $method - Méthode HTTP (GET, POST, PUT, DELETE)
+ * @param array|null $data - Données à envoyer
+ * @param bool $requiresAuth - Si true, ajoute le token d'authentification
+ * @return array - Réponse de l'API
+ */
+function callAuthenticatedAPI($endpoint, $method = 'GET', $data = null, $requiresAuth = true) {
+    $url = PYTHON_API_URL . $endpoint;
+    
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 300);
+    
+    $headers = [
+        'Content-Type: application/json',
+        'Accept: application/json'
+    ];
+    
+    // Ajouter le token d'authentification si nécessaire
+    if ($requiresAuth) {
+        $token = getAuthToken();
+        if ($token) {
+            $headers[] = 'Authorization: Bearer ' . $token;
+        }
+    }
+    
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    
+    // Configurer la méthode et les données
+    if ($method === 'POST') {
+        curl_setopt($ch, CURLOPT_POST, true);
+        if ($data !== null) {
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        }
+    } elseif ($method === 'PUT') {
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+        if ($data !== null) {
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        }
+    } elseif ($method === 'DELETE') {
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+    }
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+    
+    if ($error) {
+        return [
+            'success' => false,
+            'error' => $error,
+            'http_code' => $httpCode
+        ];
+    }
+    
+    return [
+        'success' => true,
+        'data' => json_decode($response, true),
+        'http_code' => $httpCode
+    ];
+}
+
+/**
+ * ========================================
+ * FIN DE LA FONCTIONS D'AUTHENTIFICATION
+ * ========================================
+ */
 
 /**
  * Valider une URL
@@ -281,15 +538,6 @@ function formatFileSize($bytes) {
     return round($bytes, 2) . ' ' . $units[$pow];
 }
 
-/**
- * Vérifier si l'utilisateur est authentifié (pour plus tard)
- */
-function isAuthenticated() {
-    if (!isset($_SESSION)) {
-        session_start();
-    }
-    return isset($_SESSION['user_id']);
-}
 
 /**
  * Obtenir l'utilisateur actuel (pour plus tard)
@@ -347,3 +595,4 @@ function createBreadcrumb($items) {
     return $html;
 }
 ?>
+

@@ -6,6 +6,7 @@
 
 $pageTitle = "Réécrire un article - SEO Article Generator";
 require_once '../includes/header.php';
+requireAuth(); // Vérification de l'authentification
 ?>
 
 <div class="max-w-5xl mx-auto">

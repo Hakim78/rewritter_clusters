@@ -6,6 +6,7 @@
 
 $pageTitle = "Résultats - SEO Article Generator";
 require_once '../includes/header.php';
+requireAuth(); // Vérification de l'authentification
 
 // Récupération des paramètres URL pour le test
 $testMode = isset($_GET['test']) ? true : false;

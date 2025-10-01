@@ -6,7 +6,7 @@
 
 $pageTitle = "Génération en cours - SEO Article Generator";
 require_once '../includes/header.php';
-
+requireAuth(); // Vérification de l'authentification
 // Récupération du type de workflow
 $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
 ?>
@@ -195,14 +195,15 @@ document.addEventListener('DOMContentLoaded', function() {
 async function startWorkflow(data) {
     try {
         // Appel API pour démarrer le workflow
+       const token = localStorage.getItem('auth_token');
         const response = await fetch(`http://localhost:5001/api/workflow${workflowType}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(data)
         });
-
         const startResult = await response.json();
 
         if (startResult.status === 'error') {
@@ -235,7 +236,12 @@ async function pollProgress() {
 
     pollingInterval = setInterval(async () => {
         try {
-            const response = await fetch(`http://localhost:5001/api/workflow-progress/${workflowId}`);
+            const token = localStorage.getItem('auth_token');
+            const response = await fetch(`http://localhost:5001/api/workflow-progress/${workflowId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             const progress = await response.json();
 
             if (progress.status === 'not_found') {

@@ -9,15 +9,61 @@ const CONFIG = {
     TIMEOUT: 300000 // 5 minutes
 };
 
+// Vérifier la validité du token au chargement
+document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem('auth_token');
+    
+    if (token) {
+        try {
+            // Vérifier si le token est encore valide
+            const response = await fetch(`${CONFIG.API_URL}/api/auth/verify`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token })
+            });
+            
+            const result = await response.json();
+            
+            if (!result.valid) {
+                // Token invalide, nettoyer
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('user');
+                
+                // Rediriger vers login si pas déjà sur la page
+                if (!window.location.pathname.includes('/auth/login.php')) {
+                    window.location.href = '/auth/login.php?error=expired';
+                }
+            }
+        } catch (error) {
+            console.error('Token verification failed:', error);
+        }
+    }
+});
+
 // Classe utilitaire pour les notifications
 class Toast {
     static show(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
+        
+        // Déterminer l'icône selon le type
+        let icon;
+        if (type === 'success') {
+            icon = 'check-circle';
+        } else if (type === 'error') {
+            icon = 'exclamation-circle';
+        } else if (type === 'info') {
+            icon = 'info-circle';
+        } else {
+            icon = 'bell';
+        }
+        
         toast.innerHTML = `
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-3 text-xl"></i>
+                    <i class="fas fa-${icon} mr-3 text-xl"></i>
                     <span>${message}</span>
                 </div>
                 <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
@@ -38,17 +84,26 @@ class Toast {
 
 // Classe pour gérer les appels API
 class APIClient {
-    static async call(endpoint, data = null) {
+    static async call(endpoint, data = null, method = null) {
         try {
+            // Déterminer la méthode HTTP
+            const httpMethod = method || (data ? 'POST' : 'GET');
+            
             const options = {
-                method: data ? 'POST' : 'GET',
+                method: httpMethod,
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 }
             };
             
-            if (data) {
+            // Ajouter le token JWT automatiquement si disponible
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+            
+            if (data && (httpMethod === 'POST' || httpMethod === 'PUT')) {
                 options.body = JSON.stringify(data);
             }
             
@@ -86,6 +141,16 @@ class WorkflowManager {
     
     async handleSubmit(event) {
         event.preventDefault();
+
+        // Vérifier que l'utilisateur est connecté
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            Toast.show('Vous devez être connecté pour utiliser cette fonctionnalité', 'error');
+            setTimeout(() => {
+                window.location.href = '/auth/login.php';
+            }, 2000);
+            return;
+        }
 
         // Récupérer les données du formulaire
         const formData = new FormData(this.form);
@@ -241,14 +306,6 @@ class WorkflowManager {
                         <button onclick="downloadImage('${article.image_url}', 'article-image')" class="mt-3 btn-secondary">
                             <i class="fas fa-download mr-2"></i>Télécharger l'image
                         </button>
-                    </div>
-                ` : ''}
-                
-                <!-- Meta description -->
-                ${article.meta_description ? `
-                    <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-                        <h3 class="text-lg font-bold mb-2">Meta Description</h3>
-                        <p class="text-gray-700">${article.meta_description}</p>
                     </div>
                 ` : ''}
                 

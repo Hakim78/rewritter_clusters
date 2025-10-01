@@ -11,7 +11,7 @@ import os
 # Clé secrète depuis .env
 SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
 ALGORITHM = 'HS256'
-TOKEN_EXPIRATION_HOURS = 24
+TOKEN_EXPIRATION_HOURS = 1
 
 class JWTHelper:
     """Classe utilitaire pour gérer les JWT"""

@@ -7,8 +7,9 @@ from sqlalchemy.orm import Session
 from typing import List, Optional, Dict
 from datetime import datetime
 
-from backend.models.user import User
-from backend.services.auth_service import AuthService
+# from backend.models.user import User
+from models.user import User
+from services.auth_service import AuthService
 
 class UserService:
     """Service pour gérer les utilisateurs (admin only)"""
@@ -227,3 +228,16 @@ class UserService:
             'admins': admins,
             'users': total - admins
         }
+    
+    # @staticmethod
+    # def workflow1(db: Session) -> List[User]:
+    #     """
+    #     Exemple de workflow 1: Récupérer tous les utilisateurs actifs
+        
+    #     Args:
+    #         db: Session SQLAlchemy
+        
+    #     Returns:
+    #         Liste des utilisateurs actifs
+    #     """
+    #     return db.query(User).filter(User.status == 'active').all()

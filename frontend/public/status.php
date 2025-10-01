@@ -6,6 +6,7 @@
 
 $pageTitle = "Statut du Système - SEO Article Generator";
 require_once '../includes/header.php';
+requireAuth(); // Protection : accès réservé aux utilisateurs connectés
 
 // Vérifier le backend Python
 function checkBackend() {

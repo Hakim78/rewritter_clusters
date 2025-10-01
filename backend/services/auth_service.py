@@ -8,8 +8,9 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import Optional, Dict
 
-from backend.models.user import User
-from backend.utils.jwt_helper import JWTHelper
+# from backend.models.user import User
+from models.user import User
+from utils.jwt_helper import JWTHelper
 
 class AuthService:
     """Service pour gérer l'authentification"""

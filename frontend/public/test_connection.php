@@ -54,6 +54,13 @@ function callPythonAPI($endpoint, $method = 'GET', $data = null) {
     ];
 }
 
+// Protection : réservé aux utilisateurs connectés
+session_start();
+if (!isset($_SESSION['user'])) {
+    header('Location: auth/login.php');
+    exit;
+}
+?>
 ?>
 <!DOCTYPE html>
 <html lang="fr">

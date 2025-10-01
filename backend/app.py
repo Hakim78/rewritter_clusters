@@ -3,9 +3,18 @@ Backend Python Flask - Application principale
 Fichier: backend/app.py
 """
 
+# Ajouter le répertoire racine au PYTHONPATH pour résoudre les imports
+import sys
+import os
+
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+sys.path.insert(0, current_dir)
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import os
 import logging
 from dotenv import load_dotenv
 
