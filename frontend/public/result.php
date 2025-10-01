@@ -377,10 +377,10 @@ function displaySingleProductionArticle(article) {
                     Article généré
                 </h2>
                 <div class="space-x-2">
-                    <button onclick="copyHTML('article-content-1')" class="btn-secondary">
+                    <button onclick="getEditorContent()" class="btn-secondary">
                         <i class="fas fa-copy mr-2"></i>Copier le HTML
                     </button>
-                    <button onclick="downloadHTML('article-content-1', '${seoTitle.replace(/'/g, "\\'")}')" class="btn-secondary">
+                    <button onclick="downloadEditorContent('${seoTitle.replace(/'/g, "\\'")}')" class="btn-secondary">
                         <i class="fas fa-download mr-2"></i>Télécharger
                     </button>
                 </div>
@@ -610,6 +610,13 @@ function toggleView(contentId, codeId) {
 
 function copyHTML(elementId) {
     const element = document.getElementById(elementId);
+
+    if (!element) {
+        Toast.show('Erreur: élément introuvable', 'error');
+        console.error('Element not found:', elementId);
+        return;
+    }
+
     const html = element.innerHTML;
 
     navigator.clipboard.writeText(html).then(() => {
@@ -622,9 +629,36 @@ function copyHTML(elementId) {
 
 function downloadHTML(elementId, filename) {
     const element = document.getElementById(elementId);
+
+    if (!element) {
+        Toast.show('Erreur: élément introuvable', 'error');
+        console.error('Element not found:', elementId);
+        return;
+    }
+
     const html = element.innerHTML;
 
     const blob = new Blob([html], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    Toast.show('HTML téléchargé !', 'success');
+}
+
+function downloadEditorContent(filename) {
+    if (typeof tinymce === 'undefined' || !tinymce.get('article-editor-1')) {
+        Toast.show('Éditeur non initialisé', 'error');
+        return;
+    }
+
+    const content = tinymce.get('article-editor-1').getContent();
+    const blob = new Blob([content], { type: 'text/html' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
