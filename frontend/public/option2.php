@@ -11,31 +11,31 @@ requireAuth(); // Vérification de l'authentification
 
 <div class="max-w-5xl mx-auto">
     <!-- En-tête de la page -->
-    <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
-        <div class="flex items-center mb-4">
-            <div class="bg-green-500 p-4 rounded-lg mr-4">
+    <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg shadow-xl p-8 mb-8 border border-green-100">
+        <div class="flex items-start gap-4 mb-6">
+            <div class="bg-green-500 p-4 rounded-xl shadow-lg flex-shrink-0">
                 <i class="fas fa-sync-alt text-white text-3xl"></i>
             </div>
-            <div>
-                <h1 class="text-4xl font-bold text-gray-900">Réécrire un article</h1>
-                <p class="text-gray-600 mt-2">Optimisation SEO et mise aux normes RAG LLMO People-first</p>
-            </div>
-        </div>
+            <div class="flex-1">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">Réécrire un article</h1>
+                <p class="text-gray-600 text-lg">Optimisation SEO et mise aux normes par IA</p>
 
-        <!-- Badges d'info -->
-        <div class="flex flex-wrap gap-2 mt-6">
-            <span class="badge badge-success">
-                <i class="fas fa-arrow-up mr-1"></i> Amélioration SEO
-            </span>
-            <span class="badge badge-info">
-                <i class="fas fa-check-double mr-1"></i> RAG LLMO
-            </span>
-            <span class="badge badge-warning">
-                <i class="fas fa-users mr-1"></i> People-first
-            </span>
-            <span class="badge bg-green-100 text-green-800">
-                <i class="fas fa-image mr-1"></i> Nouvelle image IA
-            </span>
+                <!-- Badges optimisés -->
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
+                        <i class="fas fa-arrow-up mr-1.5"></i> Amélioration SEO
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                        <i class="fas fa-check-double mr-1.5"></i> RAG & LLMO
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-200">
+                        <i class="fas fa-users mr-1.5"></i> People-first
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">
+                        <i class="fas fa-image mr-1.5"></i> Image IA
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
 

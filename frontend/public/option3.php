@@ -11,31 +11,31 @@ requireAuth(); // Vérification de l'authentification
 
 <div class="max-w-5xl mx-auto">
     <!-- En-tête de la page -->
-    <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
-        <div class="flex items-center mb-4">
-            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 rounded-lg mr-4">
+    <div class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg shadow-xl p-8 mb-8 border border-blue-100">
+        <div class="flex items-start gap-4 mb-6">
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 rounded-xl shadow-lg flex-shrink-0">
                 <i class="fas fa-sitemap text-white text-3xl"></i>
             </div>
-            <div>
-                <h1 class="text-4xl font-bold text-gray-900">Créer un cluster d'articles</h1>
-                <p class="text-gray-600 mt-2">1 Pilier optimisé + 3 articles satellites avec maillage complet</p>
-            </div>
-        </div>
+            <div class="flex-1">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">Créer un cluster d'articles</h1>
+                <p class="text-gray-600 text-lg">1 Pilier optimisé + 3 satellites avec maillage automatique</p>
 
-        <!-- Badges d'info -->
-        <div class="flex flex-wrap gap-2 mt-6">
-            <span class="badge bg-blue-100 text-blue-800">
-                <i class="fas fa-star mr-1"></i> 1 Pilier optimisé
-            </span>
-            <span class="badge bg-indigo-100 text-indigo-800">
-                <i class="fas fa-link mr-1"></i> 3 Articles satellites
-            </span>
-            <span class="badge badge-success">
-                <i class="fas fa-project-diagram mr-1"></i> Maillage auto
-            </span>
-            <span class="badge badge-info">
-                <i class="fas fa-search mr-1"></i> SEO optimisé
-            </span>
+                <!-- Badges optimisés -->
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                        <i class="fas fa-star mr-1.5"></i> Article pilier
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">
+                        <i class="fas fa-satellite-dish mr-1.5"></i> 3 Satellites
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
+                        <i class="fas fa-project-diagram mr-1.5"></i> Maillage auto
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-200">
+                        <i class="fas fa-search mr-1.5"></i> SEO optimisé
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
 

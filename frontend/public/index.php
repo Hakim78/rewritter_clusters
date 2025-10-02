@@ -77,7 +77,7 @@ requireAuth(); // Vérification de l'authentification
 
         <!-- Option 2 : Réécriture -->
         <div class="card-hover bg-white rounded-xl shadow-lg overflow-hidden">
-            <div class="bg-gradient-to-br from-green-500 to-teal-500 p-8 text-white">
+            <div class="bg-green-500 p-8 text-white">
                 <div class="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-full flex items-center justify-center mb-4 mx-auto">
                     <i class="fas fa-sync-alt text-4xl"></i>
                 </div>
@@ -105,7 +105,7 @@ requireAuth(); // Vérification de l'authentification
                         <span>Conservation du style original</span>
                     </li>
                 </ul>
-                <a href="option2.php" class="block w-full text-center bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition">
+                <a href="option2.php" class="block w-full text-center bg-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition">
                     <i class="fas fa-arrow-right mr-2"></i>Commencer
                 </a>
             </div>
@@ -203,7 +203,7 @@ requireAuth(); // Vérification de l'authentification
             <div class="text-5xl font-bold mb-2">3-5 min</div>
             <div class="text-purple-100">Temps de génération moyen</div>
         </div>
-        <div class="bg-gradient-to-br from-green-500 to-teal-500 rounded-xl p-8 text-white text-center">
+        <div class="bg-green-500 rounded-xl p-8 text-white text-center">
             <div class="text-5xl font-bold mb-2">100%</div>
             <div class="text-green-100">Contenu unique et original</div>
         </div>

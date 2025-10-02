@@ -11,31 +11,31 @@ requireAuth(); // Vérification de l'authentification
 
 <div class="max-w-5xl mx-auto">
     <!-- En-tête de la page -->
-    <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
-        <div class="flex items-center mb-4">
-            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 rounded-lg mr-4">
+    <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg shadow-xl p-8 mb-8 border border-purple-100">
+        <div class="flex items-start gap-4 mb-6">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 rounded-xl shadow-lg flex-shrink-0">
                 <i class="fas fa-plus-circle text-white text-3xl"></i>
             </div>
-            <div>
-                <h1 class="text-4xl font-bold text-gray-900">Créer un nouvel article</h1>
-                <p class="text-gray-600 mt-2">Génération d'article SEO optimisé RAG LLMO People-first</p>
+            <div class="flex-1">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">Créer un nouvel article</h1>
+                <p class="text-gray-600 text-lg">Génération d'article SEO optimisé par IA</p>
+
+                <!-- Badges optimisés -->
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                        <i class="fas fa-robot mr-1.5"></i> IA Générée
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
+                        <i class="fas fa-search mr-1.5"></i> SEO
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-200">
+                        <i class="fas fa-users mr-1.5"></i> People-first
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">
+                        <i class="fas fa-brain mr-1.5"></i> LLMO & RAG
+                    </span>
+                </div>
             </div>
-        </div>
-        
-        <!-- Badges d'info -->
-        <div class="flex flex-wrap gap-2 mt-6">
-            <span class="badge badge-info">
-                <i class="fas fa-robot mr-1"></i> IA Générée
-            </span>
-            <span class="badge badge-success">
-                <i class="fas fa-search mr-1"></i> SEO Optimisé
-            </span>
-            <span class="badge badge-warning">
-                <i class="fas fa-users mr-1"></i> People-first
-            </span>
-            <span class="badge bg-purple-100 text-purple-800">
-                <i class="fas fa-link mr-1"></i> Maillage interne
-            </span>
         </div>
     </div>
 
@@ -194,16 +194,8 @@ requireAuth(); // Vérification de l'authentification
                 </div>
                 <div class="space-x-4">
                     <button
-                        type="button"
-                        id="test-backend-btn"
-                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition"
-                    >
-                        <i class="fas fa-flask mr-2"></i>
-                        Tester Backend
-                    </button>
-                    <button
                         type="submit"
-                        class="btn-primary"
+                        class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
                     >
                         <i class="fas fa-magic mr-2"></i>
                         Générer l'article
