@@ -18,7 +18,11 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
     <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
         <div class="text-center mb-8">
             <div class="inline-block bg-gradient-to-r from-blue-500 to-purple-500 p-4 rounded-full mb-4">
-                <i class="fas <?php echo $workflowType === 2 ? 'fa-sync-alt' : 'fa-robot'; ?> text-white text-4xl"></i>
+                <i class="fas <?php
+                    if ($workflowType === 2) echo 'fa-sync-alt';
+                    else if ($workflowType === 3) echo 'fa-sitemap';
+                    else echo 'fa-robot';
+                ?> text-white text-4xl"></i>
             </div>
             <h1 class="text-4xl font-bold text-gray-900 mb-2">
                 <?php
@@ -31,7 +35,7 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
                     }
                 ?>
             </h1>
-            <p class="text-gray-600 text-lg">
+            <p class="text-gray-600 text-lg" id="subtitle-text">
                 <?php
                     if ($workflowType === 2) {
                         echo 'Notre IA optimise votre article existant';
@@ -62,13 +66,19 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
             <div id="step-1" class="step-container bg-gray-50 rounded-lg p-4 border-2 border-gray-200 transition-all duration-300">
                 <div class="flex items-center">
                     <div class="step-icon bg-gray-300 text-gray-500 rounded-full w-12 h-12 flex items-center justify-center mr-4">
-                        <i class="fas <?php echo $workflowType === 2 ? 'fa-file-alt' : 'fa-globe'; ?> text-xl"></i>
+                        <i class="fas <?php
+                            if ($workflowType === 2) echo 'fa-file-alt';
+                            else if ($workflowType === 3) echo 'fa-search';
+                            else echo 'fa-globe';
+                        ?> text-xl"></i>
                     </div>
                     <div class="flex-1">
                         <h3 class="font-bold text-gray-700 mb-1">
                             <?php
                                 if ($workflowType === 2) {
                                     echo 'Étape 1 : Extraction de l\'article';
+                                } else if ($workflowType === 3) {
+                                    echo 'Étape 1 : Analyse du pilier';
                                 } else {
                                     echo 'Étape 1 : Analyse du site';
                                 }
@@ -78,6 +88,8 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
                             <?php
                                 if ($workflowType === 2) {
                                     echo 'Récupération du contenu existant...';
+                                } else if ($workflowType === 3) {
+                                    echo 'Analyse de l\'article pilier et identification des thèmes...';
                                 } else {
                                     echo 'Extraction du contenu et des liens...';
                                 }
@@ -94,13 +106,19 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
             <div id="step-2" class="step-container bg-gray-50 rounded-lg p-4 border-2 border-gray-200 transition-all duration-300">
                 <div class="flex items-center">
                     <div class="step-icon bg-gray-300 text-gray-500 rounded-full w-12 h-12 flex items-center justify-center mr-4">
-                        <i class="fas <?php echo $workflowType === 2 ? 'fa-sync-alt' : 'fa-brain'; ?> text-xl"></i>
+                        <i class="fas <?php
+                            if ($workflowType === 2) echo 'fa-sync-alt';
+                            else if ($workflowType === 3) echo 'fa-star';
+                            else echo 'fa-brain';
+                        ?> text-xl"></i>
                     </div>
                     <div class="flex-1">
                         <h3 class="font-bold text-gray-700 mb-1">
                             <?php
                                 if ($workflowType === 2) {
                                     echo 'Étape 2 : Réécriture & Optimisation';
+                                } else if ($workflowType === 3) {
+                                    echo 'Étape 2 : Réécriture du pilier';
                                 } else {
                                     echo 'Étape 2 : Analyse stratégique';
                                 }
@@ -110,6 +128,8 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
                             <?php
                                 if ($workflowType === 2) {
                                     echo 'Optimisation SEO, LLMO, RAG & People-first...';
+                                } else if ($workflowType === 3) {
+                                    echo 'Optimisation de l\'article pilier avec liens satellites...';
                                 } else {
                                     echo 'IA analyse le contenu et identifie les opportunités...';
                                 }
@@ -126,13 +146,19 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
             <div id="step-3" class="step-container bg-gray-50 rounded-lg p-4 border-2 border-gray-200 transition-all duration-300">
                 <div class="flex items-center">
                     <div class="step-icon bg-gray-300 text-gray-500 rounded-full w-12 h-12 flex items-center justify-center mr-4">
-                        <i class="fas <?php echo $workflowType === 2 ? 'fa-image' : 'fa-pen-fancy'; ?> text-xl"></i>
+                        <i class="fas <?php
+                            if ($workflowType === 2) echo 'fa-image';
+                            else if ($workflowType === 3) echo 'fa-sitemap';
+                            else echo 'fa-pen-fancy';
+                        ?> text-xl"></i>
                     </div>
                     <div class="flex-1">
                         <h3 class="font-bold text-gray-700 mb-1">
                             <?php
                                 if ($workflowType === 2) {
                                     echo 'Étape 3 : Génération de l\'image';
+                                } else if ($workflowType === 3) {
+                                    echo 'Étape 3 : Génération des satellites';
                                 } else {
                                     echo 'Étape 3 : Rédaction de l\'article';
                                 }
@@ -142,6 +168,8 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
                             <?php
                                 if ($workflowType === 2) {
                                     echo 'Création de l\'image avec Ideogram AI...';
+                                } else if ($workflowType === 3) {
+                                    echo 'Création de 3 articles satellites complémentaires...';
                                 } else {
                                     echo 'Génération du contenu optimisé SEO, LLMO et RAG...';
                                 }
@@ -153,16 +181,33 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
                     </div>
                 </div>
             </div>
-            <!-- Étape 4: Image (only for workflow 1) -->
-            <?php if ($workflowType === 1): ?>
+
+            <!-- Étape 4: Image (for workflow 1 and 3) -->
+            <?php if ($workflowType === 1 || $workflowType === 3): ?>
             <div id="step-4" class="step-container bg-gray-50 rounded-lg p-4 border-2 border-gray-200 transition-all duration-300">
                 <div class="flex items-center">
                     <div class="step-icon bg-gray-300 text-gray-500 rounded-full w-12 h-12 flex items-center justify-center mr-4">
                         <i class="fas fa-image text-xl"></i>
                     </div>
                     <div class="flex-1">
-                        <h3 class="font-bold text-gray-700 mb-1">Étape 4 : Génération de l'image</h3>
-                        <p class="text-sm text-gray-600">Création de l'image avec Ideogram AI...</p>
+                        <h3 class="font-bold text-gray-700 mb-1">
+                            <?php
+                                if ($workflowType === 3) {
+                                    echo 'Étape 4 : Génération des images';
+                                } else {
+                                    echo 'Étape 4 : Génération de l\'image';
+                                }
+                            ?>
+                        </h3>
+                        <p class="text-sm text-gray-600">
+                            <?php
+                                if ($workflowType === 3) {
+                                    echo '4 images IA (1 pilier + 3 satellites)...';
+                                } else {
+                                    echo 'Création de l\'image avec Ideogram AI...';
+                                }
+                            ?>
+                        </p>
                     </div>
                     <div class="step-status">
                         <i class="fas fa-clock text-gray-400 text-xl"></i>
@@ -179,7 +224,9 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
                 <i class="fas fa-hourglass-half text-blue-600 mr-3"></i>
                 <div class="text-left">
                     <div class="text-xs text-gray-600">Temps estimé</div>
-                    <div id="estimated-time" class="text-lg font-bold text-blue-600">3-5 minutes</div>
+                    <div id="estimated-time" class="text-lg font-bold text-blue-600">
+                        <?php echo $workflowType === 3 ? '10-15 minutes' : '3-5 minutes'; ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -327,6 +374,11 @@ async function pollProgress() {
                     if (progress.step_details[stepKey]) {
                         const status = progress.step_details[stepKey].status;
                         updateStepStatus(i, status);
+
+                        // For workflow 3, update satellite count info when step 1 completes
+                        if (workflowType === 3 && i === 1 && status === 'completed') {
+                            updateClusterInfo(progress);
+                        }
                     }
                 }
             }
@@ -461,6 +513,56 @@ function rotateTip() {
     }, 300);
 }
 
+// Update cluster info for workflow 3
+function updateClusterInfo(progress) {
+    if (workflowType !== 3) return;
+
+    // Extract satellite count from progress data
+    let satelliteCount = 3; // Default value
+
+    if (progress.step_details && progress.step_details.step_1 && progress.step_details.step_1.data) {
+        const stepData = progress.step_details.step_1.data;
+
+        // Try to get satellite count from various possible fields
+        if (stepData.satellite_themes && Array.isArray(stepData.satellite_themes)) {
+            satelliteCount = stepData.satellite_themes.length;
+        } else if (stepData.satellites_count) {
+            satelliteCount = stepData.satellites_count;
+        } else if (stepData.themes && Array.isArray(stepData.themes)) {
+            satelliteCount = stepData.themes.length;
+        }
+    }
+
+    // Update subtitle
+    const subtitleEl = document.getElementById('subtitle-text');
+    if (subtitleEl) {
+        subtitleEl.innerHTML = `1 article pilier + <strong class="text-purple-600">${satelliteCount} articles satellites</strong> détectés`;
+        subtitleEl.classList.add('animate-pulse-once');
+        setTimeout(() => subtitleEl.classList.remove('animate-pulse-once'), 1000);
+    }
+
+    // Update step 3 description to show satellite count
+    const step3El = document.getElementById('step-3');
+    if (step3El) {
+        const descEl = step3El.querySelector('.text-sm.text-gray-600');
+        if (descEl) {
+            descEl.textContent = `Création de ${satelliteCount} articles satellites complémentaires...`;
+        }
+    }
+
+    // Update step 4 description to show total images
+    const step4El = document.getElementById('step-4');
+    if (step4El) {
+        const descEl = step4El.querySelector('.text-sm.text-gray-600');
+        if (descEl) {
+            const totalImages = satelliteCount + 1;
+            descEl.textContent = `${totalImages} images IA (1 pilier + ${satelliteCount} satellites)...`;
+        }
+    }
+
+    console.log(`Cluster info updated: ${satelliteCount} satellites detected`);
+}
+
 // Empêcher l'utilisateur de quitter la page accidentellement
 window.addEventListener('beforeunload', function (e) {
     if (currentStep < 3) {
@@ -472,7 +574,7 @@ window.addEventListener('beforeunload', function (e) {
 </script>
 
 <style>
-#loading-tip {
+#loading-tip, #subtitle-text {
     transition: opacity 0.3s ease-in-out;
 }
 
@@ -487,6 +589,22 @@ window.addEventListener('beforeunload', function (e) {
     50% {
         opacity: 0.5;
     }
+}
+
+@keyframes pulse-once {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.animate-pulse-once {
+    animation: pulse-once 0.6s ease-in-out;
 }
 
 .fa-spinner {

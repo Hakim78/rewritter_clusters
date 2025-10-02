@@ -18,17 +18,17 @@ requireAuth(); // Vérification de l'authentification
             </div>
             <div>
                 <h1 class="text-4xl font-bold text-gray-900">Créer un cluster d'articles</h1>
-                <p class="text-gray-600 mt-2">Réécriture + 2 articles satellites liés avec maillage interne</p>
+                <p class="text-gray-600 mt-2">1 Pilier optimisé + 3 articles satellites avec maillage complet</p>
             </div>
         </div>
-        
+
         <!-- Badges d'info -->
         <div class="flex flex-wrap gap-2 mt-6">
             <span class="badge bg-blue-100 text-blue-800">
-                <i class="fas fa-star mr-1"></i> 1 Article principal
+                <i class="fas fa-star mr-1"></i> 1 Pilier optimisé
             </span>
             <span class="badge bg-indigo-100 text-indigo-800">
-                <i class="fas fa-link mr-1"></i> 2 Articles satellites
+                <i class="fas fa-link mr-1"></i> 3 Articles satellites
             </span>
             <span class="badge badge-success">
                 <i class="fas fa-project-diagram mr-1"></i> Maillage auto
@@ -40,37 +40,48 @@ requireAuth(); // Vérification de l'authentification
     </div>
 
     <!-- Explication du cluster -->
-    <div class="grid md:grid-cols-3 gap-6 mb-8">
-        <!-- Article principal -->
-        <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg border-2 border-blue-300">
-            <div class="bg-blue-500 text-white w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto">
+    <div class="grid md:grid-cols-4 gap-4 mb-8">
+        <!-- Article pilier -->
+        <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg border-2 border-blue-400">
+            <div class="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center mb-3 mx-auto">
                 <i class="fas fa-star text-xl"></i>
             </div>
-            <h3 class="font-bold text-center text-blue-900 mb-2">Article Principal</h3>
+            <h3 class="font-bold text-center text-blue-900 mb-2">Article Pilier</h3>
             <p class="text-sm text-blue-800 text-center">
-                Votre article existant, réécrit et optimisé selon les normes RAG LLMO
+                Votre article existant réécrit et optimisé RAG/LLMO/SEO
             </p>
         </div>
 
         <!-- Article satellite 1 -->
         <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-lg border-2 border-indigo-300">
-            <div class="bg-indigo-500 text-white w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto">
+            <div class="bg-indigo-500 text-white w-12 h-12 rounded-full flex items-center justify-center mb-3 mx-auto">
                 <i class="fas fa-link text-xl"></i>
             </div>
-            <h3 class="font-bold text-center text-indigo-900 mb-2">Article Satellite 1</h3>
+            <h3 class="font-bold text-center text-indigo-900 mb-2">Satellite 1</h3>
             <p class="text-sm text-indigo-800 text-center">
-                Nouvel article lié traitant un sous-sujet complémentaire
+                Article complémentaire sur un sous-thème identifié
             </p>
         </div>
 
         <!-- Article satellite 2 -->
         <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg border-2 border-purple-300">
-            <div class="bg-purple-500 text-white w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto">
+            <div class="bg-purple-500 text-white w-12 h-12 rounded-full flex items-center justify-center mb-3 mx-auto">
                 <i class="fas fa-link text-xl"></i>
             </div>
-            <h3 class="font-bold text-center text-purple-900 mb-2">Article Satellite 2</h3>
+            <h3 class="font-bold text-center text-purple-900 mb-2">Satellite 2</h3>
             <p class="text-sm text-purple-800 text-center">
-                Second article satellite pour renforcer le maillage thématique
+                Deuxième article satellite thématique
+            </p>
+        </div>
+
+        <!-- Article satellite 3 -->
+        <div class="bg-gradient-to-br from-pink-50 to-pink-100 p-6 rounded-lg border-2 border-pink-300">
+            <div class="bg-pink-500 text-white w-12 h-12 rounded-full flex items-center justify-center mb-3 mx-auto">
+                <i class="fas fa-link text-xl"></i>
+            </div>
+            <h3 class="font-bold text-center text-pink-900 mb-2">Satellite 3</h3>
+            <p class="text-sm text-pink-800 text-center">
+                Troisième article satellite pour couvrir tous les aspects
             </p>
         </div>
     </div>
@@ -104,144 +115,71 @@ requireAuth(); // Vérification de l'authentification
     <!-- Formulaire -->
     <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
         <form id="workflow3-form" class="space-y-6">
-            
-            <!-- URL de l'article principal -->
+
+            <!-- URL de l'article pilier -->
             <div>
-                <label for="article_url" class="block text-sm font-bold text-gray-700 mb-2">
+                <label for="pillar_url" class="block text-sm font-bold text-gray-700 mb-2">
                     <i class="fas fa-star text-blue-600 mr-2"></i>
-                    URL de l'article principal <span class="text-red-500">*</span>
+                    URL de l'article pilier <span class="text-red-500">*</span>
                 </label>
-                <input 
-                    type="url" 
-                    id="article_url" 
-                    name="article_url" 
+                <input
+                    type="url"
+                    id="pillar_url"
+                    name="pillar_url"
                     required
-                    placeholder="https://example.com/article-principal"
+                    placeholder="https://example.com/article-pilier"
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                 />
-                <p class="text-sm text-gray-500 mt-1">L'article qui deviendra le pilier du cluster</p>
+                <p class="text-sm text-gray-500 mt-1">L'article existant qui deviendra le pilier optimisé du cluster</p>
             </div>
 
-            <!-- Stratégie du cluster -->
+            <!-- Mot-clé principal -->
             <div>
-                <label for="cluster_strategy" class="block text-sm font-bold text-gray-700 mb-2">
-                    <i class="fas fa-chess text-blue-600 mr-2"></i>
-                    Stratégie du cluster
+                <label for="keyword" class="block text-sm font-bold text-gray-700 mb-2">
+                    <i class="fas fa-key text-blue-600 mr-2"></i>
+                    Mot-clé principal du cluster <span class="text-red-500">*</span>
                 </label>
-                <select 
-                    id="cluster_strategy" 
-                    name="cluster_strategy"
+                <input
+                    type="text"
+                    id="keyword"
+                    name="keyword"
+                    required
+                    placeholder="Ex: isolation thermique, marketing automation"
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                >
-                    <option value="auto">Automatique - L'IA choisit les meilleurs sujets satellites</option>
-                    <option value="depth">Profondeur - Articles détaillés sur sous-sujets spécifiques</option>
-                    <option value="breadth">Largeur - Couvrir plusieurs aspects du sujet principal</option>
-                    <option value="mixed">Mixte - Combinaison de profondeur et largeur</option>
-                </select>
-                <p class="text-sm text-gray-500 mt-1">Comment structurer votre cluster</p>
-            </div>
-
-            <!-- Ton des articles -->
-            <div>
-                <label for="tone" class="block text-sm font-bold text-gray-700 mb-2">
-                    <i class="fas fa-comments text-blue-600 mr-2"></i>
-                    Ton de rédaction
-                </label>
-                <select 
-                    id="tone" 
-                    name="tone"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                >
-                    <option value="professional">Professionnel</option>
-                    <option value="casual">Décontracté</option>
-                    <option value="educational">Pédagogique</option>
-                    <option value="technical">Technique</option>
-                    <option value="conversational" selected>Conversationnel</option>
-                </select>
+                />
+                <p class="text-sm text-gray-500 mt-1">Le mot-clé SEO principal autour duquel le cluster sera construit</p>
             </div>
 
             <!-- Options avancées -->
             <div class="bg-blue-50 p-6 rounded-lg">
                 <h4 class="font-bold text-gray-900 mb-4">
                     <i class="fas fa-cog text-blue-600 mr-2"></i>
-                    Options avancées
+                    Options
                 </h4>
-                
+
                 <div class="space-y-4">
                     <!-- Générer images pour tous -->
                     <div class="flex items-center justify-between">
                         <div>
-                            <label class="font-medium text-gray-700">Images IA pour chaque article</label>
-                            <p class="text-sm text-gray-600">Générer 3 images personnalisées</p>
+                            <label class="font-medium text-gray-700">Générer les images IA</label>
+                            <p class="text-sm text-gray-600">4 images (pilier + 3 satellites)</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" name="generate_all_images" value="1" checked>
+                            <input type="checkbox" name="generate_images" value="1" checked>
                             <span class="toggle-slider"></span>
                         </label>
-                    </div>
-
-                    <!-- Optimiser maillage -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <label class="font-medium text-gray-700">Maillage interne optimisé</label>
-                            <p class="text-sm text-gray-600">Liens bidirectionnels entre tous les articles</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" name="bidirectional_links" value="1" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-
-                    <!-- Longueur des satellites -->
-                    <div>
-                        <label for="satellite_length" class="block font-medium text-gray-700 mb-2">
-                            Longueur des articles satellites
-                        </label>
-                        <select 
-                            id="satellite_length" 
-                            name="satellite_length"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                        >
-                            <option value="short">Courts (~800 mots)</option>
-                            <option value="medium" selected>Moyens (~1200 mots)</option>
-                            <option value="long">Longs (~2000 mots)</option>
-                        </select>
                     </div>
                 </div>
-            </div>
-
-            <!-- Mots-clés suggérés (optionnel) -->
-            <div>
-                <label for="suggested_keywords" class="block text-sm font-bold text-gray-700 mb-2">
-                    <i class="fas fa-key text-blue-600 mr-2"></i>
-                    Mots-clés suggérés pour les satellites (optionnel)
-                </label>
-                <textarea 
-                    id="suggested_keywords" 
-                    name="suggested_keywords" 
-                    rows="2"
-                    placeholder="marketing automation, email marketing, lead nurturing (séparés par des virgules)"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                ></textarea>
-                <p class="text-sm text-gray-500 mt-1">Laissez vide pour laisser l'IA choisir automatiquement</p>
             </div>
 
             <!-- Boutons de soumission -->
             <div class="flex items-center justify-between pt-6 border-t border-gray-200">
                 <div class="text-sm text-gray-600">
                     <i class="fas fa-clock mr-2"></i>
-                    Temps estimé : 8-12 minutes
-                    <span class="block text-xs mt-1 text-gray-500">Génération de 3 articles complets</span>
+                    Temps estimé : 10-15 minutes
+                    <span class="block text-xs mt-1 text-gray-500">Génération de 4 articles complets avec maillage</span>
                 </div>
                 <div class="space-x-4">
-                    <button
-                        type="button"
-                        id="test-backend-btn"
-                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition"
-                    >
-                        <i class="fas fa-flask mr-2"></i>
-                        Tester Backend
-                    </button>
                     <button
                         type="submit"
                         class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition"
@@ -258,29 +196,29 @@ requireAuth(); // Vérification de l'authentification
     <div id="loader" class="hidden bg-white rounded-lg shadow-xl p-12 text-center">
         <div class="loader mx-auto mb-6"></div>
         <h3 class="text-xl font-bold text-gray-900 mb-2">Création du cluster en cours...</h3>
-        <p class="text-gray-600 mb-4">Génération de 3 articles optimisés et liés entre eux.</p>
+        <p class="text-gray-600 mb-4">Génération de 1 pilier + 3 satellites avec maillage complet.</p>
         <div class="mt-6">
             <div class="progress-bar">
                 <div class="progress-bar-fill" style="width: 15%" id="progress-fill"></div>
             </div>
-            <p class="text-sm text-gray-500 mt-2" id="progress-text">Étape : Analyse de l'article principal</p>
+            <p class="text-sm text-gray-500 mt-2" id="progress-text">Étape : Analyse du pilier</p>
         </div>
         <div class="mt-6 space-y-2 text-left max-w-md mx-auto">
             <div class="flex items-center text-sm text-gray-600">
                 <i class="fas fa-circle text-blue-500 mr-2"></i>
-                <span>Analyse et réécriture de l'article principal</span>
+                <span>Analyse du pilier et identification des thèmes</span>
             </div>
             <div class="flex items-center text-sm text-gray-400">
                 <i class="far fa-circle mr-2"></i>
-                <span>Génération de l'article satellite 1</span>
+                <span>Réécriture et optimisation du pilier</span>
             </div>
             <div class="flex items-center text-sm text-gray-400">
                 <i class="far fa-circle mr-2"></i>
-                <span>Génération de l'article satellite 2</span>
+                <span>Génération des 3 articles satellites</span>
             </div>
             <div class="flex items-center text-sm text-gray-400">
                 <i class="far fa-circle mr-2"></i>
-                <span>Création du maillage interne</span>
+                <span>Génération des images IA</span>
             </div>
         </div>
     </div>
@@ -298,12 +236,11 @@ requireAuth(); // Vérification de l'authentification
         const form = document.getElementById('workflow3-form');
         form.addEventListener('submit', function() {
             const steps = [
-                'Analyse de l\'article principal',
-                'Réécriture et optimisation',
-                'Génération article satellite 1',
-                'Génération article satellite 2',
-                'Création du maillage interne',
-                'Finalisation'
+                'Analyse du pilier et identification des thèmes',
+                'Réécriture et optimisation du pilier',
+                'Génération des 3 articles satellites',
+                'Génération des images IA',
+                'Finalisation du maillage'
             ];
 
             let currentStep = 0;
@@ -320,7 +257,7 @@ requireAuth(); // Vérification de l'authentification
                 const progress = (currentStep / steps.length) * 90;
                 progressBar.style.width = progress + '%';
                 progressText.textContent = 'Étape : ' + steps[currentStep];
-            }, 15000); // Toutes les 15 secondes
+            }, 20000); // Toutes les 20 secondes (plus long pour workflow 3)
         });
 
         // Gestionnaire pour le bouton de test backend
@@ -332,7 +269,8 @@ requireAuth(); // Vérification de l'authentification
                 const data = Object.fromEntries(formData.entries());
 
                 // Ajouter des données de test si les champs sont vides
-                if (!data.article_url) data.article_url = 'https://example.com/article-cluster-principal';
+                if (!data.pillar_url) data.pillar_url = 'https://example.com/article-pilier';
+                if (!data.keyword) data.keyword = 'test cluster generation';
 
                 try {
                     // Désactiver le bouton pendant le test

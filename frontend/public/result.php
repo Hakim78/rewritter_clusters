@@ -4,6 +4,9 @@
  * Fichier: frontend/public/result.php
  */
 
+// Enable output buffering to prevent header warnings
+ob_start();
+
 $pageTitle = "Résultats - SEO Article Generator";
 require_once '../includes/header.php';
 requireAuth(); // Vérification de l'authentification
@@ -342,12 +345,15 @@ function displayProductionResults() {
         const result = JSON.parse(storedResults);
         console.log('Displaying production results:', result);
 
-        if (result.article) {
+        if (result.cluster) {
+            // Display cluster (Workflow 3)
+            displayClusterProductionResults(result.cluster);
+        } else if (result.article) {
             // Display single article (Workflow 1 or 2)
             displaySingleProductionArticle(result.article);
         } else if (result.articles) {
-            // Display cluster (Workflow 3)
-            displayClusterProductionResults(result.articles, result.internal_links);
+            // Display cluster (Workflow 3) - fallback
+            displayClusterProductionResults({pillar: result.articles[0], satellites: result.articles.slice(1), internal_links_map: result.internal_links});
         }
     } catch (error) {
         console.error('Error displaying results:', error);
@@ -763,6 +769,321 @@ function downloadAllContent() {
     window.URL.revokeObjectURL(url);
 
     Toast.show('Résultats téléchargés !', 'success');
+}
+
+// Display cluster results for Workflow 3
+function displayClusterProductionResults(clusterData) {
+    console.log('Displaying cluster results:', clusterData);
+
+    const resultsContainer = document.getElementById('production-results');
+    let html = '';
+
+    // Header
+    html += `
+        <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg shadow-xl p-8 mb-8">
+            <div class="text-center">
+                <i class="fas fa-sitemap text-6xl mb-4 opacity-90"></i>
+                <h1 class="text-4xl font-bold mb-2">Cluster de contenu créé !</h1>
+                <p class="text-xl opacity-90">1 article pilier + ${clusterData.satellites ? clusterData.satellites.length : 0} articles satellites</p>
+            </div>
+        </div>
+    `;
+
+    // Summary stats
+    const totalArticles = 1 + (clusterData.satellites ? clusterData.satellites.length : 0);
+    const totalWords = (clusterData.pillar?.word_count || 0) + (clusterData.satellites || []).reduce((sum, sat) => sum + (sat.word_count || 0), 0);
+    const totalLinks = clusterData.internal_links_map ? clusterData.internal_links_map.length : 0;
+
+    html += `
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                <div class="text-4xl font-bold text-blue-600 mb-2">${totalArticles}</div>
+                <div class="text-sm text-gray-600">Articles générés</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                <div class="text-4xl font-bold text-purple-600 mb-2">${totalWords}</div>
+                <div class="text-sm text-gray-600">Mots au total</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                <div class="text-4xl font-bold text-green-600 mb-2">${totalLinks}</div>
+                <div class="text-sm text-gray-600">Liens internes</div>
+            </div>
+        </div>
+    `;
+
+    // Pillar Article
+    if (clusterData.pillar) {
+        html += displayClusterArticle(clusterData.pillar, 'pillar', 0);
+    }
+
+    // Satellite Articles
+    if (clusterData.satellites && clusterData.satellites.length > 0) {
+        clusterData.satellites.forEach((satellite, index) => {
+            html += displayClusterArticle(satellite, 'satellite', index + 1);
+        });
+    }
+
+    // Internal Linking Map
+    if (clusterData.internal_links_map && clusterData.internal_links_map.length > 0) {
+        html += `
+            <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <i class="fas fa-link text-blue-600 mr-3"></i>
+                    Maillage interne automatique
+                </h2>
+                <div class="bg-blue-50 p-6 rounded-lg">
+                    <p class="text-sm text-gray-700 mb-4">
+                        <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                        Le maillage interne a été créé automatiquement entre tous les articles du cluster.
+                    </p>
+                    <div class="grid md:grid-cols-2 gap-3">
+                        ${clusterData.internal_links_map.map(link => `
+                            <div class="bg-white p-3 rounded border border-blue-200">
+                                <div class="text-sm">
+                                    <span class="font-semibold text-blue-700">${link.from}</span>
+                                    <i class="fas fa-arrow-right text-gray-400 mx-2"></i>
+                                    <span class="font-semibold text-purple-700">${link.to}</span>
+                                </div>
+                                ${link.anchor ? `<div class="text-xs text-gray-600 mt-1">Ancre: "${link.anchor}"</div>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    resultsContainer.innerHTML = html;
+}
+
+// Helper function to display a single article in the cluster
+function displayClusterArticle(article, type, index) {
+    const isPillar = type === 'pillar';
+    const articleNum = isPillar ? 0 : index;
+    const bgColor = isPillar ? 'from-blue-500 to-blue-600' : 'from-purple-500 to-indigo-600';
+    const icon = isPillar ? 'fa-star' : 'fa-satellite-dish';
+    const title = isPillar ? 'Article Pilier' : `Satellite ${index}`;
+
+    const seoTitle = article.seo_title || article.title || 'Article';
+    const metaDesc = article.meta_description || '';
+    const wordCount = article.word_count || 'N/A';
+
+    return `
+        <div class="bg-white rounded-lg shadow-xl mb-6 border-t-4 ${isPillar ? 'border-blue-500' : 'border-purple-500'}">
+            <!-- Header (Always visible) -->
+            <div class="p-8 pb-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center flex-1">
+                        <div class="bg-gradient-to-r ${bgColor} text-white p-3 rounded-lg mr-4">
+                            <i class="fas ${icon} text-2xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3">
+                                <h2 class="text-2xl font-bold text-gray-900">${title}</h2>
+                                <button onclick="toggleArticleSection('article-${articleNum}')" class="text-gray-400 hover:text-gray-600 transition-all duration-300">
+                                    <i id="toggle-icon-${articleNum}" class="fas fa-chevron-down text-xl transform ${articleNum === 0 ? 'rotate-180' : ''}" style="transition: transform 0.3s ease"></i>
+                                </button>
+                            </div>
+                            <p class="text-gray-600 mt-1">${seoTitle}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="copyArticleHTML('article-content-${articleNum}')" class="btn-secondary">
+                            <i class="fas fa-copy mr-2"></i>Copier
+                        </button>
+                        <button onclick="downloadArticleHTML('article-content-${articleNum}', '${seoTitle.replace(/'/g, "\\'")}')" class="btn-secondary">
+                            <i class="fas fa-download mr-2"></i>Télécharger
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick stats (Always visible) -->
+                <div class="flex items-center gap-4 pt-4 border-t">
+                    <div class="bg-gray-50 px-4 py-2 rounded-lg">
+                        <span class="text-sm text-gray-600">Mots:</span>
+                        <span class="font-bold text-gray-900 ml-2">${wordCount}</span>
+                    </div>
+                    ${article.theme ? `
+                        <div class="bg-gray-50 px-4 py-2 rounded-lg">
+                            <span class="text-sm text-gray-600">Thème:</span>
+                            <span class="font-bold text-gray-900 ml-2">${article.theme}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+
+            <!-- Collapsible Content -->
+            <div id="article-${articleNum}" class="${articleNum === 0 ? '' : 'hidden'}" style="transition: all 0.3s ease">
+                <div class="px-8 pb-8">
+                    <!-- SEO Info -->
+            <div class="grid md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <h3 class="text-sm font-bold text-gray-700 mb-2">
+                        <i class="fas fa-heading text-purple-600 mr-2"></i>Titre SEO
+                    </h3>
+                    <p class="text-gray-900">${seoTitle}</p>
+                </div>
+                ${metaDesc ? `
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h3 class="text-sm font-bold text-gray-700 mb-2">
+                            <i class="fas fa-file-alt text-blue-600 mr-2"></i>Meta Description
+                        </h3>
+                        <p class="text-gray-700 text-sm">${metaDesc}</p>
+                    </div>
+                ` : ''}
+            </div>
+
+            <!-- WordPress Excerpt -->
+            ${article.wordpress_excerpt ? `
+                <div class="mb-4 bg-green-50 p-4 rounded-lg">
+                    <h3 class="text-sm font-bold text-gray-700 mb-2">
+                        <i class="fab fa-wordpress text-green-600 mr-2"></i>Extrait WordPress
+                    </h3>
+                    <p class="text-gray-700 text-sm">${article.wordpress_excerpt}</p>
+                </div>
+            ` : ''}
+
+            <!-- Stats -->
+            <div class="flex items-center gap-4 mb-6">
+                <div class="bg-gray-50 px-4 py-2 rounded-lg">
+                    <span class="text-sm text-gray-600">Mots:</span>
+                    <span class="font-bold text-gray-900 ml-2">${wordCount}</span>
+                </div>
+                ${article.theme ? `
+                    <div class="bg-gray-50 px-4 py-2 rounded-lg">
+                        <span class="text-sm text-gray-600">Thème:</span>
+                        <span class="font-bold text-gray-900 ml-2">${article.theme}</span>
+                    </div>
+                ` : ''}
+            </div>
+
+            <!-- Image -->
+            ${article.image_url ? `
+                <div class="mb-6 bg-gradient-to-r from-pink-50 to-purple-50 p-6 rounded-lg border border-pink-200">
+                    <h3 class="text-lg font-bold mb-3 flex items-center justify-between">
+                        <span>
+                            <i class="fas fa-image text-pink-600 mr-2"></i>
+                            Image générée par IA
+                        </span>
+                        <a href="${article.image_url}" download target="_blank" class="text-sm btn-secondary">
+                            <i class="fas fa-download mr-2"></i>Télécharger
+                        </a>
+                    </h3>
+                    <div class="bg-white p-4 rounded-lg">
+                        <img src="${article.image_url}" alt="${seoTitle}" class="w-full rounded-lg shadow-lg">
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Content -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-bold text-gray-900">
+                        <i class="fas fa-file-code text-gray-700 mr-2"></i>
+                        Contenu HTML
+                    </h3>
+                    <button onclick="toggleArticleView('article-${articleNum}', 'code-${articleNum}')" class="text-sm btn-secondary">
+                        <i class="fas fa-code mr-2"></i>Voir le code
+                    </button>
+                </div>
+
+                <!-- Rendered view -->
+                <div id="article-${articleNum}" class="article-preview border border-gray-200 p-6 rounded-lg bg-gray-50">
+                    ${article.html_content || ''}
+                </div>
+
+                <!-- Code view -->
+                <div id="code-${articleNum}" class="hidden">
+                    <pre class="code-block text-xs"><code>${escapeHtml(article.html_content || '')}</code></pre>
+                    <button onclick="toggleArticleView('article-${articleNum}', 'code-${articleNum}')" class="mt-3 btn-secondary">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour à l'aperçu
+                    </button>
+                </div>
+            </div>
+
+            <!-- FAQ -->
+            ${article.faq_json && article.faq_json.length > 0 ? `
+                <div class="bg-indigo-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-bold mb-3 flex items-center justify-between">
+                        <span>
+                            <i class="fas fa-question-circle text-indigo-600 mr-2"></i>
+                            FAQ (${article.faq_json.length} questions)
+                        </span>
+                        <button onclick="copyToClipboard('faq-${articleNum}')" class="text-sm btn-secondary">
+                            <i class="fas fa-copy mr-1"></i>Copier JSON
+                        </button>
+                    </h3>
+                    <pre id="faq-${articleNum}" class="text-xs bg-white p-4 rounded overflow-auto max-h-48"><code>${JSON.stringify(article.faq_json, null, 2)}</code></pre>
+                </div>
+            ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Helper functions for cluster display
+function copyArticleHTML(elementId) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    const html = element.innerHTML;
+    navigator.clipboard.writeText(html).then(() => {
+        Toast.show('HTML copié !', 'success');
+    }).catch(err => {
+        Toast.show('Erreur lors de la copie', 'error');
+    });
+}
+
+function downloadArticleHTML(elementId, filename) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    const html = element.innerHTML;
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    Toast.show('HTML téléchargé !', 'success');
+}
+
+function toggleArticleView(contentId, codeId) {
+    const content = document.getElementById(contentId);
+    const code = document.getElementById(codeId);
+
+    if (!content || !code) return;
+
+    if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        code.classList.add('hidden');
+    } else {
+        content.classList.add('hidden');
+        code.classList.remove('hidden');
+    }
+}
+
+// Toggle article section (collapse/expand) for Workflow 3
+function toggleArticleSection(articleId) {
+    const section = document.getElementById(articleId);
+    const icon = document.getElementById('toggle-icon-' + articleId.replace('article-', ''));
+
+    if (!section || !icon) return;
+
+    if (section.classList.contains('hidden')) {
+        // Expand
+        section.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+    } else {
+        // Collapse
+        section.classList.add('hidden');
+        icon.style.transform = 'rotate(0deg)';
+    }
 }
 </script>
 

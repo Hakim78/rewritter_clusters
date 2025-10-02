@@ -99,13 +99,17 @@ $templateRealPath = realpath($templatePath);
                 <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{SOURCE_URL}')" title="Cliquez pour copier">{SOURCE_URL}</code> - URL source de l'article
             </div>
             <?php elseif ($workflow == '3'): ?>
-            <!-- Variables Workflow 3: Cluster d'articles -->
+            <!-- Variables Workflow 3: Cluster d'articles (1 Pilier + 3 Satellites) -->
             <div>
-                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{KEYWORD}')" title="Cliquez pour copier">{KEYWORD}</code> - Mot-clé principal<br>
-                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{CURRENT_DATE}')" title="Cliquez pour copier">{CURRENT_DATE}</code> - Date actuelle
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{SATELLITE_NUMBER}')" title="Cliquez pour copier">{SATELLITE_NUMBER}</code> - Numéro du satellite (1, 2, 3)<br>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{SATELLITE_THEME}')" title="Cliquez pour copier">{SATELLITE_THEME}</code> - Thème du satellite<br>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{SATELLITE_FOCUS}')" title="Cliquez pour copier">{SATELLITE_FOCUS}</code> - Focus spécifique<br>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{SATELLITE_KEYWORD}')" title="Cliquez pour copier">{SATELLITE_KEYWORD}</code> - Mot-clé du satellite<br>
             </div>
             <div>
-                <span class="text-gray-600 text-sm italic">À compléter selon les besoins du workflow 3</span>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{PILLAR_TITLE}')" title="Cliquez pour copier">{PILLAR_TITLE}</code> - Titre de l'article pilier<br>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{MAIN_KEYWORD}')" title="Cliquez pour copier">{MAIN_KEYWORD}</code> - Mot-clé principal du cluster<br>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{CURRENT_DATE}')" title="Cliquez pour copier">{CURRENT_DATE}</code> - Date actuelle<br>
             </div>
             <?php endif; ?>
         </div>

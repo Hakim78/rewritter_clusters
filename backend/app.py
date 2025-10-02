@@ -26,6 +26,7 @@ from backend.middleware.auth_middleware import token_required
 # Import workflow managers
 from workflows.workflow_1.workflow_manager import WorkflowManager as WorkflowManager1
 from workflows.workflow_2.workflow_manager import WorkflowManager as WorkflowManager2
+from workflows.workflow_3.workflow_manager import WorkflowManager as WorkflowManager3
 from workflows.workflow_2.steps.article_scraper import ArticleScraper
 
 # Charger les variables d'environnement
@@ -48,6 +49,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 # Initialize workflow managers
 workflow_manager_1 = WorkflowManager1()
 workflow_manager_2 = WorkflowManager2()
+workflow_manager_3 = WorkflowManager3()
 article_scraper = ArticleScraper()
 
 # Store workflow progress in memory (in production, use Redis or database)
@@ -416,46 +418,90 @@ def workflow2():
 @app.route('/api/workflow3', methods=['POST'])
 @token_required
 def workflow3():
-    """Option 3: Création d'un cluster de 3 articles (PROTÉGÉ)"""
+    """Option 3: Cluster Generation - 1 Pillar + 3 Satellites (PROTÉGÉ)"""
     try:
         data = request.get_json()
-        
-        if 'article_url' not in data:
-            return jsonify({
-                'status': 'error',
-                'message': 'URL de l\'article manquante'
-            }), 400
-        
-        # Simulation
-        result = {
-            'status': 'success',
-            'message': 'Cluster créé avec succès',
-            'articles': [
-                {
-                    'type': 'main',
-                    'title': 'Article principal réécrit',
-                    'html_content': '<h1>Article principal</h1>',
-                    'image_url': 'https://via.placeholder.com/800x400'
-                },
-                {
-                    'type': 'satellite',
-                    'title': 'Article satellite 1',
-                    'html_content': '<h1>Article lié 1</h1>',
-                    'image_url': 'https://via.placeholder.com/800x400'
-                },
-                {
-                    'type': 'satellite',
-                    'title': 'Article satellite 2',
-                    'html_content': '<h1>Article lié 2</h1>',
-                    'image_url': 'https://via.placeholder.com/800x400'
-                }
-            ],
-            'internal_links': ['lien1 -> lien2', 'lien1 -> lien3']
+        logger.info(f"Received workflow3 request with data: {data}")
+
+        # Validation
+        required_fields = ['pillar_url', 'keyword']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({
+                    'status': 'error',
+                    'message': f'Champ manquant: {field}'
+                }), 400
+
+        logger.info(f"Processing workflow3 with data: {data}")
+
+        # Generate workflow ID
+        from datetime import datetime
+        workflow_id = f"wf3_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
+
+        # Initialize progress tracking (4 steps for workflow 3)
+        workflow_progress[workflow_id] = {
+            'workflow_id': workflow_id,
+            'status': 'in_progress',
+            'current_step': 1,
+            'total_steps': 4,
+            'progress_percent': 10,
+            'step_details': {
+                'step_1': {'status': 'in_progress', 'name': 'Analyse du pilier'},
+                'step_2': {'status': 'pending', 'name': 'Réécriture du pilier'},
+                'step_3': {'status': 'pending', 'name': 'Génération des satellites'},
+                'step_4': {'status': 'pending', 'name': 'Génération des images'}
+            }
         }
-        
-        return jsonify(result)
-        
+
+        # Progress callback
+        def update_progress(step, status, progress_percent=None):
+            if workflow_id in workflow_progress:
+                workflow_progress[workflow_id]['current_step'] = step
+                workflow_progress[workflow_id]['step_details'][f'step_{step}']['status'] = status
+                if progress_percent:
+                    workflow_progress[workflow_id]['progress_percent'] = progress_percent
+                logger.info(f"Progress update: Workflow {workflow_id} - Step {step} - {status}")
+
+        # Execute workflow asynchronously
+        import threading
+
+        def execute_workflow_async():
+            try:
+                # Execute workflow with progress callback
+                result = workflow_manager_3.execute_workflow3_sync(data, progress_callback=update_progress)
+
+                # Store final result
+                if result.get('status') == 'success':
+                    workflow_progress[workflow_id].update({
+                        'status': 'completed',
+                        'result': result
+                    })
+                else:
+                    workflow_progress[workflow_id].update({
+                        'status': 'error',
+                        'error': result.get('error', 'Unknown error')
+                    })
+
+            except Exception as e:
+                logger.error(f"Workflow {workflow_id} failed: {str(e)}", exc_info=True)
+                workflow_progress[workflow_id].update({
+                    'status': 'error',
+                    'error': str(e)
+                })
+
+        # Start workflow in background thread
+        thread = threading.Thread(target=execute_workflow_async)
+        thread.start()
+
+        # Return workflow ID for polling
+        return jsonify({
+            'status': 'started',
+            'workflow_id': workflow_id,
+            'message': 'Workflow started successfully'
+        })
+
     except Exception as e:
+        logger.error(f"Workflow3 endpoint error: {str(e)}", exc_info=True)
         return jsonify({
             'status': 'error',
             'message': str(e)

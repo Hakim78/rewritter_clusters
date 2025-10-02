@@ -191,9 +191,18 @@ class WorkflowManager {
                 Toast.show('Veuillez remplir tous les champs obligatoires', 'error');
                 return false;
             }
-        } else if (this.workflowType === 2 || this.workflowType === 3) {
+        } else if (this.workflowType === 2) {
             if (!data.article_url) {
                 Toast.show('Veuillez fournir l\'URL de l\'article', 'error');
+                return false;
+            }
+        } else if (this.workflowType === 3) {
+            if (!data.pillar_url) {
+                Toast.show('Veuillez fournir l\'URL de l\'article pilier', 'error');
+                return false;
+            }
+            if (!data.keyword) {
+                Toast.show('Veuillez fournir le mot-clé principal', 'error');
                 return false;
             }
         }
