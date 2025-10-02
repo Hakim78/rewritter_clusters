@@ -1,0 +1,24 @@
+# Template de génération - Workflow 2 : Réécriture d'articles
+
+## EN DÉVELOPPEMENT
+
+Ce template est actuellement en cours de développement.
+
+Variables disponibles :
+- {DOMAIN}
+- {KEYWORD}
+- {GUIDELINE}
+- {SITE_URL}
+- {CONTENT_TONE}
+- {TARGET_AUDIENCE}
+- {MAIN_TOPICS}
+- {SEO_OPPORTUNITIES}
+- {CONTENT_GAPS}
+- {CONTENT_STRATEGY}
+- {KEYWORD_OPPORTUNITIES}
+- {INTERNAL_LINKS}
+- {EXTERNAL_REFS}
+- {CURRENT_DATE}
+- {ORIGINAL_CONTENT}
+
+Instructions à venir...

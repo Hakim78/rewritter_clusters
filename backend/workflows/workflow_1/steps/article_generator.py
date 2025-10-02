@@ -10,16 +10,25 @@ import logging
 from typing import Dict, List, Any
 from datetime import datetime
 from anthropic import Anthropic
+import pymysql
 
 logger = logging.getLogger(__name__)
 
 class ArticleGenerator:
     """Generates optimized articles using Claude with 4-expert approach: SEO, People First, LLMO, RAG"""
 
-    def __init__(self):
+    def __init__(self, workflow_id=1):
         self.client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
         self.model = "claude-sonnet-4-5-20250929"  # Claude Sonnet 4.5
         self.max_tokens = 16000  # Increased to ensure all sections are generated
+        self.workflow_id = workflow_id
+
+        # Ancienne méthode (fichiers) - conservée en fallback
+        self.template_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            'templates',
+            'article_prompt_template.txt'
+        )
 
     async def generate_article(self,
                               scraped_data: Dict[str, Any],
@@ -123,7 +132,7 @@ class ArticleGenerator:
                                  scraped_data: Dict[str, Any],
                                  analysis_data: Dict[str, Any],
                                  user_requirements: Dict[str, Any]) -> str:
-        """Build the comprehensive generation prompt with 4-expert methodology"""
+        """Build the comprehensive generation prompt with 4-expert methodology using template"""
 
         # Extract key data
         insights = analysis_data.get('insights', {})
@@ -138,232 +147,80 @@ class ArticleGenerator:
         external_refs = scraped_data.get('external_references', [])
         external_refs_formatted = self._format_external_refs(external_refs)
 
-        prompt = f"""
-Tu es un expert en rédaction SEO combinant 4 expertises : SEO technique, People First, LLMO (Large Language Model Optimization), et RAG-Friendly content.
+        # Load template (try database first, fallback to file)
+        try:
+            template = self._load_template_from_db()
+            if not template:
+                logger.warning("No template found in database, falling back to file")
+                with open(self.template_path, 'r', encoding='utf-8') as f:
+                    template = f.read()
+        except Exception as e:
+            logger.error(f"Failed to load template: {e}")
+            raise Exception(f"Template loading failed: {e}")
 
-## OBJECTIF
-Rédiger un article expert, long, structuré et durable, optimisé simultanément pour :
-1. Les moteurs de recherche (SEO)
-2. Les lecteurs humains (People First)
-3. Les IA génératives (LLMO)
-4. L'indexation dans des bases RAG
+        # Prepare variables for injection
+        variables = {
+            'DOMAIN': user_requirements.get('domain', 'Non spécifié'),
+            'KEYWORD': user_requirements.get('keyword', 'Non spécifié'),
+            'GUIDELINE': user_requirements.get('guideline', 'Non spécifié'),
+            'SITE_URL': user_requirements.get('site_url', 'Non spécifié'),
+            'CONTENT_TONE': insights.get('content_tone', 'À déterminer'),
+            'TARGET_AUDIENCE': insights.get('target_audience', 'À déterminer'),
+            'MAIN_TOPICS': ', '.join(insights.get('main_topics', [])[:5]),
+            'SEO_OPPORTUNITIES': self._format_list(insights.get('seo_opportunities', []), 'SEO'),
+            'CONTENT_GAPS': self._format_list(insights.get('content_gaps', []), 'Lacunes'),
+            'CONTENT_STRATEGY': insights.get('content_strategy', 'Développer un contenu approfondi et structuré'),
+            'KEYWORD_OPPORTUNITIES': ', '.join(insights.get('keyword_opportunities', [])[:10]),
+            'INTERNAL_LINKS': internal_links_formatted,
+            'EXTERNAL_REFS': external_refs_formatted,
+            'CURRENT_DATE': datetime.now().strftime('%Y-%m-%d')
+        }
 
-## CONTEXTE UTILISATEUR
-- **Domaine d'activité** : {user_requirements.get('domain', 'Non spécifié')}
-- **Mot-clé principal** : {user_requirements.get('keyword', 'Non spécifié')}
-- **Brief utilisateur** : {user_requirements.get('guideline', 'Non spécifié')}
-- **URL du site** : {user_requirements.get('site_url', 'Non spécifié')}
+        # Inject variables into template
+        prompt = template
+        for key, value in variables.items():
+            prompt = prompt.replace(f'{{{key}}}', str(value))
 
-## ANALYSE DU SITE EXISTANT
-### Structure actuelle :
-- Ton du contenu : {insights.get('content_tone', 'À déterminer')}
-- Audience cible : {insights.get('target_audience', 'À déterminer')}
-- Thèmes principaux : {', '.join(insights.get('main_topics', [])[:5])}
-
-### Opportunités identifiées :
-{self._format_list(insights.get('seo_opportunities', []), 'SEO')}
-
-### Lacunes de contenu :
-{self._format_list(insights.get('content_gaps', []), 'Lacunes')}
-
-### Stratégie de contenu recommandée :
-{insights.get('content_strategy', 'Développer un contenu approfondi et structuré')}
-
-### Mots-clés secondaires suggérés :
-{', '.join(insights.get('keyword_opportunities', [])[:10])}
-
-## LIENS À INTÉGRER
-### Liens internes à utiliser (2-4 liens naturels) :
-{internal_links_formatted}
-
-### Références externes pour contexte :
-{external_refs_formatted}
-
-## RÈGLES DE RÉDACTION (4 EXPERTS COMBINÉS)
-
-### 1. EXPERT SEO TECHNIQUE
-- Structure HTML propre SANS balise <h1> (réservée au CMS)
-- Hiérarchie : <h2> pour sections principales, <h3> pour sous-sections
-- Balises sémantiques : <ul>, <li>, <strong>, <p>
-- Titre SEO : MAX 60 caractères, inclure le mot-clé principal
-- Meta description : MAX 155 caractères, claire et incitative
-- Extrait WordPress : 2 lignes orientées bénéfices métier
-- Intégrer 2-4 liens internes avec ancres naturelles (utilise les liens fournis)
-- Densité de mots-clés : naturelle, pas de sur-optimisation
-- Mots-clés longue traîne et entités sémantiques
-- Prévoir schema.org (Article, FAQ si pertinent)
-- Mentionner dates/tendances/évolutions récentes (2024-2025)
-
-### 2. EXPERT PEOPLE FIRST
-- Priorité = VALEUR pour l'utilisateur, pas pour l'algorithme
-- Style pédagogique, clair, accessible, sans jargon inutile
-- Répondre à des questions réelles avec informations concrètes
-- Paragraphes courts (3-4 phrases maximum)
-- Ton professionnel, crédible, jamais artificiel ou marketing
-- Exemples concrets, cas pratiques, contexte réel
-- Pas d'emoji, pas de superlatifs excessifs
-- Copywriting orienté bénéfices immédiats
-
-### 3. EXPERT LLMO (Large Language Model Optimization)
-- Chaque section = autonome (titre explicite + réponse complète)
-- Mot-clé principal dans titre + première phrase de chaque section
-- Formats facilement extractibles par IA :
-  * Listes numérotées
-  * Tableaux comparatifs HTML (<table>)
-  * Définitions claires
-- Entités précises (noms propres, normes, lieux, concepts)
-- Éviter formulations vagues, toujours privilégier la précision
-- FAQ obligatoire : 3-5 questions, réponses courtes et factuelles
-
-### 4. EXPERT RAG-FRIENDLY
-- Contenu en blocs autonomes (réutilisables indépendamment)
-- Éviter dépendances de contexte ("comme vu ci-dessus", "voir plus loin")
-- Langage clair, phrases affirmatives, sans ambiguïté
-- Créer toile thématique : liens vers autres contenus
-- Données fraîches, vérifiables, horodatées (2024-2025)
-- Formats normalisés (FAQ, listes, tableaux)
-- Structure permettant extraction facile par embeddings
-
-## FORMAT DE RÉPONSE EXIGÉ
-
-Fournis ta réponse dans ce format EXACT (utilise ces balises XML) :
-
-<SEO_TITLE>
-Titre SEO de 50-60 caractères incluant le mot-clé principal
-</SEO_TITLE>
-
-<META_DESCRIPTION>
-Meta description de 140-155 caractères, claire, incitative, avec mot-clé
-</META_DESCRIPTION>
-
-<WORDPRESS_EXCERPT>
-Extrait WordPress sur 2 lignes orienté bénéfices métier concrets
-</WORDPRESS_EXCERPT>
-
-<HTML_CONTENT>
-<!-- Article complet en HTML structuré -->
-<!-- Commence par <h2> (PAS de <h1>) -->
-<!-- Introduction de 2-3 paragraphes -->
-
-<h2>Première section principale</h2>
-<p>Paragraphe intro avec mot-clé principal dans la première phrase...</p>
-
-<h3>Sous-section détaillée</h3>
-<p>Contenu pédagogique...</p>
-<ul>
-<li><strong>Point clé 1</strong> : explication concrète</li>
-<li><strong>Point clé 2</strong> : exemple pratique</li>
-</ul>
-
-<h2>Deuxième section principale</h2>
-<!-- Continue avec structure claire -->
-
-<!-- Intègre 2-4 liens internes naturellement dans le texte -->
-<!-- Exemple : <a href="URL_INTERNE">texte d'ancre naturel</a> -->
-
-<!-- Ajoute des tableaux si pertinent : -->
-<table>
-<thead>
-<tr><th>Critère</th><th>Description</th></tr>
-</thead>
-<tbody>
-<tr><td>Critère 1</td><td>Explication</td></tr>
-</tbody>
-</table>
-
-</HTML_CONTENT>
-
-<FAQ_SECTION>
-<!-- FAQ en HTML avec 3-5 questions -->
-<div class="faq">
-<h2>Questions fréquentes</h2>
-
-<div class="faq-item">
-<h3>Question 1 précise et courte ?</h3>
-<p>Réponse factuelle courte (2-3 phrases max).</p>
-</div>
-
-<div class="faq-item">
-<h3>Question 2 précise et courte ?</h3>
-<p>Réponse factuelle courte.</p>
-</div>
-
-<!-- 3-5 questions total -->
-</div>
-</FAQ_SECTION>
-
-<FAQ_JSON>
-[
-  {{
-    "question": "Question 1 précise et courte ?",
-    "answer": "Réponse factuelle courte (2-3 phrases max)."
-  }},
-  {{
-    "question": "Question 2 précise et courte ?",
-    "answer": "Réponse factuelle courte."
-  }}
-]
-</FAQ_JSON>
-
-<SECONDARY_KEYWORDS>
-mot-clé secondaire 1, mot-clé secondaire 2, mot-clé secondaire 3
-</SECONDARY_KEYWORDS>
-
-<ENTITIES>
-entité 1, entité 2, entité 3, entité 4
-</ENTITIES>
-
-<INTERNAL_LINKS_USED>
-URL1, URL2, URL3
-</INTERNAL_LINKS_USED>
-
-<SCHEMA_MARKUP>
-{{
-  "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": "Titre de l'article",
-  "description": "Description courte",
-  "author": {{
-    "@type": "Organization",
-    "name": "Nom du site"
-  }},
-  "datePublished": "{datetime.now().strftime('%Y-%m-%d')}",
-  "dateModified": "{datetime.now().strftime('%Y-%m-%d')}"
-}}
-</SCHEMA_MARKUP>
-
-<READABILITY_SCORE>
-Facile / Moyen / Expert (auto-évaluation)
-</READABILITY_SCORE>
-
-## CONSIGNES FINALES
-
-1. **Longueur** : Article de 1500-2500 mots minimum
-2. **Qualité** : Chaque phrase doit apporter de la valeur
-3. **Structure** : Utilise titres, listes, tableaux pour faciliter la lecture
-4. **Liens internes** : Intègre 2-4 liens de manière naturelle dans le texte
-5. **Actualité** : Mentionne tendances/dates/évolutions 2024-2025
-6. **Ton** : Professionnel, expert, pédagogique, jamais marketing ou artificiel
-7. **SEO** : Naturel, pas de bourrage de mots-clés
-8. **Pas d'emoji** : Rédaction professionnelle pure
-9. **IMPORTANT** : Tu DOIS inclure les sections FAQ_SECTION ET FAQ_JSON dans ta réponse
-
-⚠️ RAPPEL CRITIQUE : Fournis TOUTES les sections demandées ci-dessus, y compris :
-- SEO_TITLE
-- META_DESCRIPTION
-- WORDPRESS_EXCERPT
-- HTML_CONTENT
-- FAQ_SECTION (HTML)
-- FAQ_JSON (format JSON strict)
-- SECONDARY_KEYWORDS
-- ENTITIES
-- INTERNAL_LINKS_USED
-- SCHEMA_MARKUP
-- READABILITY_SCORE
-
-COMMENCE LA RÉDACTION MAINTENANT.
-"""
         return prompt
+
+    def _load_template_from_db(self) -> str:
+        """Load the active template for this workflow from the database"""
+        try:
+            conn = pymysql.connect(
+                host=os.getenv('DB_HOST'),
+                port=int(os.getenv('DB_PORT', 3306)),
+                user=os.getenv('DB_USER'),
+                password=os.getenv('DB_PASSWORD'),
+                database=os.getenv('DB_NAME'),
+                charset='utf8mb4',
+                cursorclass=pymysql.cursors.DictCursor
+            )
+
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT content, version
+                    FROM prompt_templates
+                    WHERE workflow_id = %s AND is_active = TRUE
+                    ORDER BY version DESC
+                    LIMIT 1
+                """, (self.workflow_id,))
+
+                result = cursor.fetchone()
+
+                if result:
+                    logger.info(f"Loaded template from database: workflow {self.workflow_id}, version {result['version']}")
+                    return result['content']
+                else:
+                    logger.warning(f"No active template found in database for workflow {self.workflow_id}")
+                    return None
+
+        except Exception as e:
+            logger.error(f"Failed to load template from database: {e}")
+            return None
+
+        finally:
+            if conn:
+                conn.close()
 
     def _format_list(self, items: List[str], prefix: str = '') -> str:
         """Format a list of items for the prompt"""

@@ -4,9 +4,11 @@
  * Fichier: frontend/public/loading.php
  */
 
+require_once '../includes/functions.php';
+requireAuth(); // Vérification de l'authentification AVANT le header
+
 $pageTitle = "Génération en cours - SEO Article Generator";
 require_once '../includes/header.php';
-requireAuth(); // Vérification de l'authentification
 // Récupération du type de workflow
 $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
 ?>

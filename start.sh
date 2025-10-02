@@ -22,6 +22,12 @@ trap cleanup INT TERM
 echo -e "${BLUE}📡 Démarrage Backend Python...${NC}"
 cd backend
 source venv/bin/activate
+
+# Vérifier et installer les dépendances
+echo -e "${BLUE}📦 Vérification des dépendances...${NC}"
+pip install -q -r requirements.txt
+echo -e "${GREEN}✓ Dépendances installées${NC}"
+
 python app.py > ../logs/python/app.log 2>&1 &
 BACKEND_PID=$!
 

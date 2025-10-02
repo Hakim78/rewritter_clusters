@@ -161,6 +161,13 @@ class Database {
 }
 
 /**
+ * Helper function pour obtenir une connexion PDO
+ */
+function getDBConnection() {
+    return Database::getInstance()->getConnection();
+}
+
+/**
  * Classe pour gérer les requêtes d'articles
  */
 class ArticleRequestModel {

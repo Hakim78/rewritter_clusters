@@ -95,7 +95,7 @@ if ($inAdminFolder) {
                         
                         <?php if ($isAdminUser): ?>
                             <!-- Menu admin -->
-                            <a href="/admin/users.php" 
+                            <a href="/admin/index.php"
                                class="px-3 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 font-semibold transition">
                                 <i class="fas fa-shield-alt mr-2"></i>Admin
                             </a>
