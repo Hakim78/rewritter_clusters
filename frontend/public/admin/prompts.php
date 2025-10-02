@@ -68,9 +68,9 @@ requireAdmin(); // Protection admin
 
         <!-- Workflow 2 : Réécriture -->
         <div class="card-hover bg-white rounded-xl shadow-lg overflow-hidden opacity-75">
-            <div class="bg-gradient-to-br from-green-500 to-teal-500 p-8 text-white relative">
-                <div class="absolute top-2 right-2 bg-gray-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full">
-                    EN COURS
+            <div class="bg-green-500 p-8 text-white relative">
+            <div class="absolute top-2 right-2 bg-green-400 text-green-900 text-xs font-bold px-3 py-1 rounded-full">
+                    ACTIF
                 </div>
                 <div class="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-full flex items-center justify-center mb-4 mx-auto">
                     <i class="fas fa-sync-alt text-4xl"></i>
@@ -96,8 +96,8 @@ requireAdmin(); // Protection admin
                         <span>Amélioration SEO</span>
                     </li>
                 </ul>
-                <a href="prompt_editor.php?workflow=2" class="block w-full text-center bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition opacity-50 cursor-not-allowed" onclick="return false;">
-                    <i class="fas fa-lock mr-2"></i>En développement
+                <a href="prompt_editor.php?workflow=2" class="block w-full text-center bg-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition">
+                <i class="fas fa-edit mr-2"></i>Modifier le prompt
                 </a>
             </div>
         </div>

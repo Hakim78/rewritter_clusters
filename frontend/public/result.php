@@ -363,18 +363,33 @@ function displayProductionResults() {
     }
 }
 
-function displaySingleProductionArticle(article) {
+function displaySingleProductionArticle(article, metadata = null) {
     const seoTitle = article.seo_title || article.title || 'Article généré';
     const metaDesc = article.meta_description || '';
     const wordCount = article.word_count || 'N/A';
     const readabilityScore = article.readability_score || 'N/A';
 
+    // Workflow-specific title
+    let pageTitle = 'Article généré';
+    let pageIcon = 'fa-check-circle';
+    let pageIconColor = 'text-green-500';
+
+    if (workflowType === 2) {
+        pageTitle = 'Article réécrit et optimisé';
+        pageIcon = 'fa-sync-alt';
+        pageIconColor = 'text-green-500';
+    } else if (workflowType === 3) {
+        pageTitle = 'Cluster d\'articles créé';
+        pageIcon = 'fa-sitemap';
+        pageIconColor = 'text-purple-500';
+    }
+
     const html = `
         <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
             <div class="flex items-center justify-between mb-6 border-b pb-4">
                 <h2 class="text-3xl font-bold text-gray-900">
-                    <i class="fas fa-check-circle text-green-500 mr-3"></i>
-                    Article généré
+                    <i class="fas ${pageIcon} ${pageIconColor} mr-3"></i>
+                    ${pageTitle}
                 </h2>
                 <div class="space-x-2">
                     <button onclick="getEditorContent()" class="btn-secondary">
@@ -506,14 +521,40 @@ function displaySingleProductionArticle(article) {
                 </div>
             ` : ''}
 
+            <!-- Improvements (Workflow 2 only) -->
+            ${workflowType === 2 && article.improvements && article.improvements.length > 0 ? `
+                <div class="mb-6 bg-green-50 p-6 rounded-lg border-l-4 border-green-500">
+                    <h3 class="text-xl font-bold mb-3 flex items-center">
+                        <i class="fas fa-check-double text-green-600 mr-2"></i>
+                        Améliorations apportées à l'article
+                    </h3>
+                    <ul class="space-y-2">
+                        ${article.improvements.map(improvement => `<li class="flex items-start"><i class="fas fa-check-circle text-green-600 mr-2 mt-1"></i><span>${improvement}</span></li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+
+            <!-- Internal Links Added (Workflow 2 only) -->
+            ${workflowType === 2 && article.internal_links_added && article.internal_links_added.length > 0 ? `
+                <div class="mb-6 bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500">
+                    <h3 class="text-xl font-bold mb-3 flex items-center">
+                        <i class="fas fa-link text-blue-600 mr-2"></i>
+                        Liens internes ajoutés (${article.internal_links_added.length})
+                    </h3>
+                    <div class="space-y-1">
+                        ${article.internal_links_added.map(link => `<div class="text-sm text-blue-700"><i class="fas fa-arrow-right mr-2"></i>${link}</div>`).join('')}
+                    </div>
+                </div>
+            ` : ''}
+
             <!-- Keywords & Entities -->
-            ${article.keywords && (article.keywords.secondary.length > 0 || article.keywords.entities.length > 0) ? `
+            ${article.keywords && (article.keywords.secondary?.length > 0 || article.keywords.entities?.length > 0) ? `
                 <div class="mb-6 bg-yellow-50 p-6 rounded-lg">
                     <h3 class="text-xl font-bold mb-3">
                         <i class="fas fa-tags text-yellow-600 mr-2"></i>
                         Mots-clés & Entités
                     </h3>
-                    ${article.keywords.secondary.length > 0 ? `
+                    ${article.keywords.secondary?.length > 0 ? `
                         <div class="mb-3">
                             <h4 class="font-semibold text-gray-700 mb-2">Mots-clés secondaires :</h4>
                             <div class="flex flex-wrap gap-2">
@@ -521,7 +562,7 @@ function displaySingleProductionArticle(article) {
                             </div>
                         </div>
                     ` : ''}
-                    ${article.keywords.entities.length > 0 ? `
+                    ${article.keywords.entities?.length > 0 ? `
                         <div>
                             <h4 class="font-semibold text-gray-700 mb-2">Entités :</h4>
                             <div class="flex flex-wrap gap-2">

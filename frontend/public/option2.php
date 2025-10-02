@@ -13,7 +13,7 @@ requireAuth(); // Vérification de l'authentification
     <!-- En-tête de la page -->
     <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
         <div class="flex items-center mb-4">
-            <div class="bg-gradient-to-r from-green-500 to-teal-500 p-4 rounded-lg mr-4">
+            <div class="bg-green-500 p-4 rounded-lg mr-4">
                 <i class="fas fa-sync-alt text-white text-3xl"></i>
             </div>
             <div>
@@ -21,7 +21,7 @@ requireAuth(); // Vérification de l'authentification
                 <p class="text-gray-600 mt-2">Optimisation SEO et mise aux normes RAG LLMO People-first</p>
             </div>
         </div>
-        
+
         <!-- Badges d'info -->
         <div class="flex flex-wrap gap-2 mt-6">
             <span class="badge badge-success">
@@ -48,19 +48,19 @@ requireAuth(); // Vérification de l'authentification
         <ul class="space-y-2 text-blue-800">
             <li class="flex items-start">
                 <i class="fas fa-check text-blue-600 mr-3 mt-1"></i>
-                <span>Analyse complète de votre article existant</span>
+                <span>Correction de grammaire, orthographe et style</span>
             </li>
             <li class="flex items-start">
                 <i class="fas fa-check text-blue-600 mr-3 mt-1"></i>
-                <span>Optimisation SEO selon les dernières normes Google</span>
+                <span>Mise à jour des données, chiffres et tendances récentes</span>
             </li>
             <li class="flex items-start">
                 <i class="fas fa-check text-blue-600 mr-3 mt-1"></i>
-                <span>Adaptation au format People-first pour meilleur ranking</span>
+                <span>Optimisation SEO + LLMO + People-first</span>
             </li>
             <li class="flex items-start">
                 <i class="fas fa-check text-blue-600 mr-3 mt-1"></i>
-                <span>Génération d'une nouvelle image optimisée IA</span>
+                <span>Structuration RAG-friendly avec FAQ</span>
             </li>
         </ul>
     </div>
@@ -68,117 +68,147 @@ requireAuth(); // Vérification de l'authentification
     <!-- Formulaire -->
     <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
         <form id="workflow2-form" class="space-y-6">
-            
-            <!-- URL de l'article -->
+
+            <!-- Mode de saisie -->
             <div>
-                <label for="article_url" class="block text-sm font-bold text-gray-700 mb-2">
-                    <i class="fas fa-link text-green-600 mr-2"></i>
-                    URL de l'article à réécrire <span class="text-red-500">*</span>
+                <label class="block text-sm font-bold text-gray-700 mb-3">
+                    <i class="fas fa-file-import text-green-600 mr-2"></i>
+                    Mode de saisie de l'article
                 </label>
-                <div class="flex">
-                    <input 
-                        type="url" 
-                        id="article_url" 
-                        name="article_url" 
-                        required
-                        placeholder="https://example.com/mon-article"
-                        class="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                <div class="flex gap-4">
+                    <label class="flex items-center cursor-pointer bg-gray-50 p-4 rounded-lg border-2 border-gray-300 hover:border-green-500 transition flex-1">
+                        <input type="radio" name="input_mode" value="url" checked class="mr-3">
+                        <div>
+                            <div class="font-bold text-gray-900">
+                                <i class="fas fa-link text-green-600 mr-1"></i>
+                                Via URL
+                            </div>
+                            <div class="text-sm text-gray-600">Article déjà publié en ligne</div>
+                        </div>
+                    </label>
+                    <label class="flex items-center cursor-pointer bg-gray-50 p-4 rounded-lg border-2 border-gray-300 hover:border-green-500 transition flex-1">
+                        <input type="radio" name="input_mode" value="manual" class="mr-3">
+                        <div>
+                            <div class="font-bold text-gray-900">
+                                <i class="fas fa-keyboard text-green-600 mr-1"></i>
+                                Contenu manuel
+                            </div>
+                            <div class="text-sm text-gray-600">Article non publié ou copié</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Mode URL -->
+            <div id="url-mode" class="space-y-4">
+                <div>
+                    <label for="article_url" class="block text-sm font-bold text-gray-700 mb-2">
+                        <i class="fas fa-link text-green-600 mr-2"></i>
+                        URL de l'article à réécrire <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex">
+                        <input
+                            type="url"
+                            id="article_url"
+                            name="article_url"
+                            placeholder="https://example.com/mon-article"
+                            class="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                        <button
+                            type="button"
+                            id="preview-btn"
+                            class="px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-r-lg border border-l-0 border-gray-300 transition"
+                        >
+                            <i class="fas fa-eye mr-2"></i>Prévisualiser
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">L'URL complète de l'article que vous souhaitez optimiser</p>
+                </div>
+
+                <!-- Aperçu de l'article -->
+                <div id="article-preview" class="hidden bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h4 class="font-bold text-gray-900 mb-3">
+                        <i class="fas fa-eye text-green-600 mr-2"></i>
+                        Aperçu de l'article
+                    </h4>
+                    <div id="preview-content" class="text-gray-700">
+                        <!-- Sera rempli dynamiquement -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode Manuel -->
+            <div id="manual-mode" class="hidden space-y-4">
+                <div>
+                    <label for="article_title" class="block text-sm font-bold text-gray-700 mb-2">
+                        <i class="fas fa-heading text-green-600 mr-2"></i>
+                        Titre de l'article <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="article_title"
+                        name="article_title"
+                        placeholder="Le titre actuel de votre article"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     />
-                    <button 
-                        type="button" 
-                        id="preview-btn"
-                        class="px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-r-lg border border-l-0 border-gray-300 transition"
-                    >
-                        <i class="fas fa-eye mr-2"></i>Prévisualiser
-                    </button>
+                    <p class="text-sm text-gray-500 mt-1">Le titre actuel qui sera optimisé</p>
                 </div>
-                <p class="text-sm text-gray-500 mt-1">L'URL complète de l'article que vous souhaitez optimiser</p>
-            </div>
 
-            <!-- Aperçu de l'article (si prévisualisé) -->
-            <div id="article-preview" class="hidden bg-gray-50 p-6 rounded-lg border border-gray-200">
-                <h4 class="font-bold text-gray-900 mb-3">
-                    <i class="fas fa-eye text-green-600 mr-2"></i>
-                    Aperçu de l'article
-                </h4>
-                <div id="preview-content" class="text-gray-700">
-                    <!-- Sera rempli dynamiquement -->
+                <div>
+                    <label for="article_content" class="block text-sm font-bold text-gray-700 mb-2">
+                        <i class="fas fa-file-alt text-green-600 mr-2"></i>
+                        Contenu de l'article <span class="text-red-500">*</span>
+                    </label>
+                    <textarea
+                        id="article_content"
+                        name="article_content"
+                        rows="15"
+                        placeholder="Collez le contenu complet de votre article ici (HTML accepté)..."
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-sm"
+                    ></textarea>
+                    <p class="text-sm text-gray-500 mt-1">Le contenu complet de l'article (HTML ou texte brut)</p>
                 </div>
             </div>
 
-            <!-- Options d'optimisation -->
+            <!-- Mot-clé principal -->
+            <div>
+                <label for="keyword" class="block text-sm font-bold text-gray-700 mb-2">
+                    <i class="fas fa-key text-green-600 mr-2"></i>
+                    Mot-clé principal <span class="text-red-500">*</span>
+                </label>
+                <input
+                    type="text"
+                    id="keyword"
+                    name="keyword"
+                    required
+                    placeholder="Ex: marketing automation 2025"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+                <p class="text-sm text-gray-500 mt-1">Le mot-clé SEO principal à optimiser dans l'article</p>
+            </div>
+
+            <!-- Liens internes optionnels -->
             <div class="bg-green-50 p-6 rounded-lg">
                 <h4 class="font-bold text-gray-900 mb-4">
-                    <i class="fas fa-sliders-h text-green-600 mr-2"></i>
-                    Options d'optimisation
+                    <i class="fas fa-link text-green-600 mr-2"></i>
+                    Liens internes à ajouter (optionnel)
                 </h4>
-                
-                <div class="space-y-4">
-                    <!-- Conserver le style -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <label class="font-medium text-gray-700">Conserver le style d'écriture</label>
-                            <p class="text-sm text-gray-600">Garder le ton et la voix de l'auteur original</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" name="keep_style" value="1" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
+                <p class="text-sm text-gray-600 mb-4">Ajoutez 2 à 4 URLs de votre site à intégrer naturellement dans l'article</p>
 
-                    <!-- Ajouter des sections -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <label class="font-medium text-gray-700">Enrichir avec de nouvelles sections</label>
-                            <p class="text-sm text-gray-600">Ajouter du contenu complémentaire pertinent</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" name="add_sections" value="1" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-
-                    <!-- Optimiser images -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <label class="font-medium text-gray-700">Générer nouvelle image principale</label>
-                            <p class="text-sm text-gray-600">Créer une image optimisée par IA</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" name="generate_image" value="1" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-
-                    <!-- Maillage interne -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <label class="font-medium text-gray-700">Optimiser le maillage interne</label>
-                            <p class="text-sm text-gray-600">Améliorer les liens internes existants</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" name="optimize_links" value="1" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
+                <div id="internal-links-container">
+                    <div class="flex gap-2 mb-2">
+                        <input
+                            type="url"
+                            name="internal_links[]"
+                            placeholder="https://votre-site.com/autre-page"
+                            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        />
+                        <button type="button" onclick="addLinkField('internal')" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
                 </div>
-            </div>
-
-            <!-- Niveau d'optimisation -->
-            <div>
-                <label for="optimization_level" class="block text-sm font-bold text-gray-700 mb-2">
-                    <i class="fas fa-chart-line text-green-600 mr-2"></i>
-                    Niveau d'optimisation SEO
-                </label>
-                <select 
-                    id="optimization_level" 
-                    name="optimization_level"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                >
-                    <option value="light">Légère - Corrections mineures uniquement</option>
-                    <option value="moderate" selected>Modérée - Équilibre entre changements et conservation</option>
-                    <option value="aggressive">Agressive - Réécriture complète pour SEO maximum</option>
-                </select>
+                <p class="text-xs text-gray-500">Pages de votre site à mentionner dans l'article réécrit</p>
             </div>
 
             <!-- Boutons de soumission -->
@@ -189,16 +219,8 @@ requireAuth(); // Vérification de l'authentification
                 </div>
                 <div class="space-x-4">
                     <button
-                        type="button"
-                        id="test-backend-btn"
-                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition"
-                    >
-                        <i class="fas fa-flask mr-2"></i>
-                        Tester Backend
-                    </button>
-                    <button
                         type="submit"
-                        class="bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition"
+                        class="bg-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition"
                     >
                         <i class="fas fa-sync-alt mr-2"></i>
                         Réécrire et optimiser
@@ -217,7 +239,7 @@ requireAuth(); // Vérification de l'authentification
             <div class="progress-bar">
                 <div class="progress-bar-fill" style="width: 20%" id="progress-fill"></div>
             </div>
-            <p class="text-sm text-gray-500 mt-2">Étape : Analyse de l'article original</p>
+            <p class="text-sm text-gray-500 mt-2" id="progress-text">Étape : Extraction du contenu</p>
         </div>
     </div>
 
@@ -228,59 +250,161 @@ requireAuth(); // Vérification de l'authentification
 <script src="assets/js/app.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('workflow2-form');
+        const urlMode = document.getElementById('url-mode');
+        const manualMode = document.getElementById('manual-mode');
+        const articleUrl = document.getElementById('article_url');
+        const articleTitle = document.getElementById('article_title');
+        const articleContent = document.getElementById('article_content');
+
+        // Gestion du mode de saisie
+        document.querySelectorAll('input[name="input_mode"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'url') {
+                    urlMode.classList.remove('hidden');
+                    manualMode.classList.add('hidden');
+                    articleUrl.required = true;
+                    articleTitle.required = false;
+                    articleContent.required = false;
+                } else {
+                    urlMode.classList.add('hidden');
+                    manualMode.classList.remove('hidden');
+                    articleUrl.required = false;
+                    articleTitle.required = true;
+                    articleContent.required = true;
+                }
+            });
+        });
+
+        // Initialize WorkflowManager
         new WorkflowManager(2);
-        
+
         // Preview button
         document.getElementById('preview-btn')?.addEventListener('click', async function() {
-            const url = document.getElementById('article_url').value;
+            const url = articleUrl.value;
             if (!url) {
                 Toast.show('Veuillez entrer une URL', 'error');
                 return;
             }
 
-            // Simuler la preview (à remplacer par un vrai appel API)
-            document.getElementById('article-preview').classList.remove('hidden');
-            document.getElementById('preview-content').innerHTML = `
-                <div class="skeleton h-4 w-3/4 mb-3"></div>
-                <div class="skeleton h-4 w-full mb-3"></div>
-                <div class="skeleton h-4 w-5/6"></div>
+            const previewDiv = document.getElementById('article-preview');
+            const previewContent = document.getElementById('preview-content');
+
+            previewDiv.classList.remove('hidden');
+            previewContent.innerHTML = `
+                <div class="space-y-2">
+                    <div class="skeleton h-4 w-3/4"></div>
+                    <div class="skeleton h-4 w-full"></div>
+                    <div class="skeleton h-4 w-5/6"></div>
+                </div>
             `;
 
-            // Simulation
-            setTimeout(() => {
-                document.getElementById('preview-content').innerHTML = `
-                    <div class="text-sm">
-                        <strong>Titre détecté:</strong> Article exemple<br>
-                        <strong>Mots:</strong> ~1200<br>
-                        <strong>État SEO:</strong> À améliorer
+            try {
+                // Call preview API endpoint
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(`${CONFIG.API_URL}/api/preview-article`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': token
+                    },
+                    body: JSON.stringify({ article_url: url })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    previewContent.innerHTML = `
+                        <div class="space-y-2 text-sm">
+                            <div><strong>Titre détecté:</strong> ${result.data.title || 'N/A'}</div>
+                            <div><strong>Mots:</strong> ~${result.data.word_count || 0}</div>
+                            <div><strong>État SEO:</strong> <span class="text-yellow-600">À optimiser</span></div>
+                            <div class="mt-3 p-3 bg-white rounded border">
+                                <strong>Extrait:</strong>
+                                <p class="text-gray-600 mt-1">${(result.data.excerpt || '').substring(0, 200)}...</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(result.message || 'Erreur lors de la prévisualisation');
+                }
+            } catch (error) {
+                previewContent.innerHTML = `
+                    <div class="text-red-600">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Impossible de charger l'aperçu: ${error.message}
                     </div>
                 `;
-            }, 1000);
+            }
+        });
+
+        // Animation de la barre de progression
+        form.addEventListener('submit', function() {
+            let progress = 20;
+            const progressBar = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+
+            const steps = [
+                'Extraction du contenu',
+                'Correction et analyse',
+                'Optimisation SEO',
+                'Réécriture finale',
+                'Génération de l\'image'
+            ];
+            let stepIndex = 0;
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 8;
+                if (progress >= 95) {
+                    progress = 95;
+                    clearInterval(interval);
+                }
+                progressBar.style.width = progress + '%';
+
+                // Update step text
+                const newStepIndex = Math.floor(progress / 20);
+                if (newStepIndex < steps.length && newStepIndex !== stepIndex) {
+                    stepIndex = newStepIndex;
+                    progressText.textContent = `Étape : ${steps[stepIndex]}`;
+                }
+            }, 1500);
         });
 
         // Gestionnaire pour le bouton de test backend
-        const form = document.getElementById('workflow2-form');
         const testButton = document.getElementById('test-backend-btn');
         if (testButton) {
             testButton.addEventListener('click', async function() {
-                // Récupérer les données du formulaire
                 const formData = new FormData(form);
                 const data = Object.fromEntries(formData.entries());
 
-                // Ajouter des données de test si les champs sont vides
-                if (!data.article_url) data.article_url = 'https://example.com/article-existant';
+                // Get input mode
+                const inputMode = data.input_mode;
+
+                // Handle internal links
+                const internalLinks = formData.getAll('internal_links[]').filter(link => link.trim() !== '');
+                if (internalLinks.length > 0) data.internal_links = internalLinks;
+
+                // Add test data if empty
+                if (inputMode === 'url') {
+                    if (!data.article_url) data.article_url = 'https://example.com/article-existant';
+                } else {
+                    if (!data.article_title) data.article_title = 'Test Article Title';
+                    if (!data.article_content) data.article_content = '<h1>Test Article</h1><p>This is test content for the article rewriter.</p>';
+                }
+                if (!data.keyword) data.keyword = 'test article optimization';
 
                 try {
-                    // Désactiver le bouton pendant le test
                     testButton.disabled = true;
                     testButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test en cours...';
 
-                    // Appel à l'API de test
-                    const response = await fetch(`${CONFIG.API_URL}/api/workflow2`, {
+                    const token = localStorage.getItem('auth_token');
+                    const response = await fetch(`${CONFIG.API_URL}/api/test-workflow2`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Accept': 'application/json'
+                            'Accept': 'application/json',
+                            'Authorization': token
                         },
                         body: JSON.stringify(data)
                     });
@@ -289,11 +413,7 @@ requireAuth(); // Vérification de l'authentification
 
                     if (response.ok && result.status === 'success') {
                         Toast.show('Test réussi ! Redirection vers les résultats...', 'success');
-
-                        // Stocker les résultats du test dans sessionStorage
                         sessionStorage.setItem('testResults', JSON.stringify(result));
-
-                        // Rediriger vers la page de résultats en mode test
                         setTimeout(() => {
                             window.location.href = 'result.php?test=1&workflow=2';
                         }, 1500);
@@ -305,13 +425,39 @@ requireAuth(); // Vérification de l'authentification
                     Toast.show(`Erreur de test: ${error.message}`, 'error');
                     console.error('Test error:', error);
                 } finally {
-                    // Réactiver le bouton
                     testButton.disabled = false;
                     testButton.innerHTML = '<i class="fas fa-flask mr-2"></i>Tester Backend';
                 }
             });
         }
     });
+
+    // Fonction pour ajouter des champs de liens dynamiquement
+    function addLinkField(type) {
+        const container = document.getElementById(`${type}-links-container`);
+        const color = 'green';
+
+        const newField = document.createElement('div');
+        newField.className = 'flex gap-2 mb-2';
+        newField.innerHTML = `
+            <input
+                type="url"
+                name="${type}_links[]"
+                placeholder="https://votre-site.com/autre-page"
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${color}-500"
+            />
+            <button type="button" onclick="removeLinkField(this)" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                <i class="fas fa-minus"></i>
+            </button>
+        `;
+
+        container.appendChild(newField);
+    }
+
+    // Fonction pour supprimer un champ de lien
+    function removeLinkField(button) {
+        button.parentElement.remove();
+    }
 </script>
 
 <?php require_once '../includes/footer.php'; ?>

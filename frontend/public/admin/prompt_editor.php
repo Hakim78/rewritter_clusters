@@ -59,10 +59,12 @@ $templateRealPath = realpath($templatePath);
     <div class="bg-blue-50 border-l-4 border-blue-500 p-6 mb-8 rounded-lg">
         <h3 class="text-lg font-bold text-blue-900 mb-3">
             <i class="fas fa-info-circle mr-2"></i>
-            Variables disponibles
+            Variables disponibles pour Workflow <?php echo $workflow; ?>
         </h3>
         <p class="text-blue-800 mb-4">Ces variables sont automatiquement remplacées par les données utilisateur :</p>
         <div class="grid md:grid-cols-2 gap-4">
+            <?php if ($workflow == '1'): ?>
+            <!-- Variables Workflow 1: Création d'article -->
             <div>
                 <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{DOMAIN}')" title="Cliquez pour copier">{DOMAIN}</code> - Domaine d'activité<br>
                 <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{KEYWORD}')" title="Cliquez pour copier">{KEYWORD}</code> - Mot-clé principal<br>
@@ -81,6 +83,31 @@ $templateRealPath = realpath($templatePath);
                 <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{EXTERNAL_REFS}')" title="Cliquez pour copier">{EXTERNAL_REFS}</code> - Références externes<br>
                 <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{CURRENT_DATE}')" title="Cliquez pour copier">{CURRENT_DATE}</code> - Date actuelle
             </div>
+            <?php elseif ($workflow == '2'): ?>
+            <!-- Variables Workflow 2: Réécriture d'article -->
+            <div>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{ORIGINAL_TITLE}')" title="Cliquez pour copier">{ORIGINAL_TITLE}</code> - Titre actuel<br>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{ORIGINAL_CONTENT}')" title="Cliquez pour copier">{ORIGINAL_CONTENT}</code> - Contenu HTML original<br>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{ORIGINAL_TEXT}')" title="Cliquez pour copier">{ORIGINAL_TEXT}</code> - Texte brut original<br>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{ORIGINAL_META_DESC}')" title="Cliquez pour copier">{ORIGINAL_META_DESC}</code> - Meta description actuelle<br>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{WORD_COUNT}')" title="Cliquez pour copier">{WORD_COUNT}</code> - Nombre de mots
+            </div>
+            <div>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{KEYWORD}')" title="Cliquez pour copier">{KEYWORD}</code> - Mot-clé principal<br>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{INTERNAL_LINKS}')" title="Cliquez pour copier">{INTERNAL_LINKS}</code> - Liens internes à ajouter<br>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{CURRENT_DATE}')" title="Cliquez pour copier">{CURRENT_DATE}</code> - Date actuelle<br>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{SOURCE_URL}')" title="Cliquez pour copier">{SOURCE_URL}</code> - URL source de l'article
+            </div>
+            <?php elseif ($workflow == '3'): ?>
+            <!-- Variables Workflow 3: Cluster d'articles -->
+            <div>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{KEYWORD}')" title="Cliquez pour copier">{KEYWORD}</code> - Mot-clé principal<br>
+                <code class="variable-tag cursor-pointer hover:bg-blue-200 transition" onclick="copyVariable('{CURRENT_DATE}')" title="Cliquez pour copier">{CURRENT_DATE}</code> - Date actuelle
+            </div>
+            <div>
+                <span class="text-gray-600 text-sm italic">À compléter selon les besoins du workflow 3</span>
+            </div>
+            <?php endif; ?>
         </div>
         <p class="text-blue-800 mt-4 text-sm">
             <i class="fas fa-exclamation-triangle mr-2"></i>

@@ -101,23 +101,47 @@ switch ($action) {
                 exit;
             }
 
-            // Vérifier que les variables critiques sont présentes
-            $requiredVars = [
-                '{DOMAIN}',
-                '{KEYWORD}',
-                '{GUIDELINE}',
-                '{SITE_URL}',
-                '{CONTENT_TONE}',
-                '{TARGET_AUDIENCE}',
-                '{MAIN_TOPICS}',
-                '{SEO_OPPORTUNITIES}',
-                '{CONTENT_GAPS}',
-                '{CONTENT_STRATEGY}',
-                '{KEYWORD_OPPORTUNITIES}',
-                '{INTERNAL_LINKS}',
-                '{EXTERNAL_REFS}',
-                '{CURRENT_DATE}'
-            ];
+            // Vérifier que les variables critiques sont présentes (selon le workflow)
+            $requiredVars = [];
+
+            if ($workflow == 1) {
+                // Workflow 1: Création d'article
+                $requiredVars = [
+                    '{DOMAIN}',
+                    '{KEYWORD}',
+                    '{GUIDELINE}',
+                    '{SITE_URL}',
+                    '{CONTENT_TONE}',
+                    '{TARGET_AUDIENCE}',
+                    '{MAIN_TOPICS}',
+                    '{SEO_OPPORTUNITIES}',
+                    '{CONTENT_GAPS}',
+                    '{CONTENT_STRATEGY}',
+                    '{KEYWORD_OPPORTUNITIES}',
+                    '{INTERNAL_LINKS}',
+                    '{EXTERNAL_REFS}',
+                    '{CURRENT_DATE}'
+                ];
+            } elseif ($workflow == 2) {
+                // Workflow 2: Réécriture d'article
+                $requiredVars = [
+                    '{ORIGINAL_TITLE}',
+                    '{ORIGINAL_CONTENT}',
+                    '{ORIGINAL_TEXT}',
+                    '{ORIGINAL_META_DESC}',
+                    '{WORD_COUNT}',
+                    '{KEYWORD}',
+                    '{INTERNAL_LINKS}',
+                    '{CURRENT_DATE}',
+                    '{SOURCE_URL}'
+                ];
+            } elseif ($workflow == 3) {
+                // Workflow 3: Cluster d'articles (à définir)
+                $requiredVars = [
+                    '{KEYWORD}',
+                    '{CURRENT_DATE}'
+                ];
+            }
 
             $missingVars = [];
             foreach ($requiredVars as $var) {

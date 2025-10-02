@@ -61,5 +61,11 @@ echo ""
 echo "⚠️  Appuie sur Ctrl+C pour arrêter les serveurs"
 echo ""
 
-# Garder le script actif
-wait
+# Garder le script actif et surveiller les processus
+while kill -0 $BACKEND_PID 2>/dev/null && kill -0 $FRONTEND_PID 2>/dev/null; do
+    sleep 1
+done
+
+echo "⚠️  Un des serveurs s'est arrêté de manière inattendue"
+echo "Vérifiez les logs pour plus d'informations"
+cleanup

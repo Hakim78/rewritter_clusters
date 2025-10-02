@@ -18,13 +18,29 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
     <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
         <div class="text-center mb-8">
             <div class="inline-block bg-gradient-to-r from-blue-500 to-purple-500 p-4 rounded-full mb-4">
-                <i class="fas fa-robot text-white text-4xl"></i>
+                <i class="fas <?php echo $workflowType === 2 ? 'fa-sync-alt' : 'fa-robot'; ?> text-white text-4xl"></i>
             </div>
             <h1 class="text-4xl font-bold text-gray-900 mb-2">
-                Génération en cours...
+                <?php
+                    if ($workflowType === 2) {
+                        echo 'Réécriture en cours...';
+                    } else if ($workflowType === 3) {
+                        echo 'Création du cluster...';
+                    } else {
+                        echo 'Génération en cours...';
+                    }
+                ?>
             </h1>
             <p class="text-gray-600 text-lg">
-                Notre IA rédige votre article SEO optimisé
+                <?php
+                    if ($workflowType === 2) {
+                        echo 'Notre IA optimise votre article existant';
+                    } else if ($workflowType === 3) {
+                        echo 'Création d\'un cluster de contenu thématique';
+                    } else {
+                        echo 'Notre IA rédige votre article SEO optimisé';
+                    }
+                ?>
             </p>
         </div>
 
@@ -42,15 +58,31 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
 
         <!-- Étapes du workflow -->
         <div class="space-y-4">
-            <!-- Étape 1: Scraping -->
+            <!-- Étape 1 -->
             <div id="step-1" class="step-container bg-gray-50 rounded-lg p-4 border-2 border-gray-200 transition-all duration-300">
                 <div class="flex items-center">
                     <div class="step-icon bg-gray-300 text-gray-500 rounded-full w-12 h-12 flex items-center justify-center mr-4">
-                        <i class="fas fa-globe text-xl"></i>
+                        <i class="fas <?php echo $workflowType === 2 ? 'fa-file-alt' : 'fa-globe'; ?> text-xl"></i>
                     </div>
                     <div class="flex-1">
-                        <h3 class="font-bold text-gray-700 mb-1">Étape 1 : Analyse du site</h3>
-                        <p class="text-sm text-gray-600">Extraction du contenu et des liens...</p>
+                        <h3 class="font-bold text-gray-700 mb-1">
+                            <?php
+                                if ($workflowType === 2) {
+                                    echo 'Étape 1 : Extraction de l\'article';
+                                } else {
+                                    echo 'Étape 1 : Analyse du site';
+                                }
+                            ?>
+                        </h3>
+                        <p class="text-sm text-gray-600">
+                            <?php
+                                if ($workflowType === 2) {
+                                    echo 'Récupération du contenu existant...';
+                                } else {
+                                    echo 'Extraction du contenu et des liens...';
+                                }
+                            ?>
+                        </p>
                     </div>
                     <div class="step-status">
                         <i class="fas fa-clock text-gray-400 text-xl"></i>
@@ -58,15 +90,31 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
                 </div>
             </div>
 
-            <!-- Étape 2: Analyse -->
+            <!-- Étape 2 -->
             <div id="step-2" class="step-container bg-gray-50 rounded-lg p-4 border-2 border-gray-200 transition-all duration-300">
                 <div class="flex items-center">
                     <div class="step-icon bg-gray-300 text-gray-500 rounded-full w-12 h-12 flex items-center justify-center mr-4">
-                        <i class="fas fa-brain text-xl"></i>
+                        <i class="fas <?php echo $workflowType === 2 ? 'fa-sync-alt' : 'fa-brain'; ?> text-xl"></i>
                     </div>
                     <div class="flex-1">
-                        <h3 class="font-bold text-gray-700 mb-1">Étape 2 : Analyse stratégique</h3>
-                        <p class="text-sm text-gray-600">IA analyse le contenu et identifie les opportunités...</p>
+                        <h3 class="font-bold text-gray-700 mb-1">
+                            <?php
+                                if ($workflowType === 2) {
+                                    echo 'Étape 2 : Réécriture & Optimisation';
+                                } else {
+                                    echo 'Étape 2 : Analyse stratégique';
+                                }
+                            ?>
+                        </h3>
+                        <p class="text-sm text-gray-600">
+                            <?php
+                                if ($workflowType === 2) {
+                                    echo 'Optimisation SEO, LLMO, RAG & People-first...';
+                                } else {
+                                    echo 'IA analyse le contenu et identifie les opportunités...';
+                                }
+                            ?>
+                        </p>
                     </div>
                     <div class="step-status">
                         <i class="fas fa-clock text-gray-400 text-xl"></i>
@@ -74,22 +122,39 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
                 </div>
             </div>
 
-            <!-- Étape 3: Génération -->
+            <!-- Étape 3 -->
             <div id="step-3" class="step-container bg-gray-50 rounded-lg p-4 border-2 border-gray-200 transition-all duration-300">
                 <div class="flex items-center">
                     <div class="step-icon bg-gray-300 text-gray-500 rounded-full w-12 h-12 flex items-center justify-center mr-4">
-                        <i class="fas fa-pen-fancy text-xl"></i>
+                        <i class="fas <?php echo $workflowType === 2 ? 'fa-image' : 'fa-pen-fancy'; ?> text-xl"></i>
                     </div>
                     <div class="flex-1">
-                        <h3 class="font-bold text-gray-700 mb-1">Étape 3 : Rédaction de l'article</h3>
-                        <p class="text-sm text-gray-600">Génération du contenu optimisé SEO, LLMO et RAG...</p>
+                        <h3 class="font-bold text-gray-700 mb-1">
+                            <?php
+                                if ($workflowType === 2) {
+                                    echo 'Étape 3 : Génération de l\'image';
+                                } else {
+                                    echo 'Étape 3 : Rédaction de l\'article';
+                                }
+                            ?>
+                        </h3>
+                        <p class="text-sm text-gray-600">
+                            <?php
+                                if ($workflowType === 2) {
+                                    echo 'Création de l\'image avec Ideogram AI...';
+                                } else {
+                                    echo 'Génération du contenu optimisé SEO, LLMO et RAG...';
+                                }
+                            ?>
+                        </p>
                     </div>
                     <div class="step-status">
                         <i class="fas fa-clock text-gray-400 text-xl"></i>
                     </div>
                 </div>
             </div>
-            <!-- Étape 4: Image -->
+            <!-- Étape 4: Image (only for workflow 1) -->
+            <?php if ($workflowType === 1): ?>
             <div id="step-4" class="step-container bg-gray-50 rounded-lg p-4 border-2 border-gray-200 transition-all duration-300">
                 <div class="flex items-center">
                     <div class="step-icon bg-gray-300 text-gray-500 rounded-full w-12 h-12 flex items-center justify-center mr-4">
@@ -104,6 +169,7 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
 
         </div>
 
@@ -130,7 +196,7 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
             <div class="text-sm text-gray-600">Temps écoulé</div>
         </div>
         <div class="bg-white rounded-lg shadow-lg p-6 text-center">
-            <div class="text-3xl font-bold text-purple-500 mb-2" id="stat-step">1/4</div>
+            <div class="text-3xl font-bold text-purple-500 mb-2" id="stat-step">1/<?php echo $workflowType === 2 ? '3' : '4'; ?></div>
             <div class="text-sm text-gray-600">Étape actuelle</div>
         </div>
     </div>
@@ -267,7 +333,8 @@ async function pollProgress() {
 
             // Update current step indicator
             if (progress.current_step) {
-                document.getElementById('stat-step').textContent = `${progress.current_step}/4`;
+                const totalSteps = workflowType === 2 ? 3 : 4;
+                document.getElementById('stat-step').textContent = `${progress.current_step}/${totalSteps}`;
                 currentStep = progress.current_step;
             }
 
@@ -316,6 +383,13 @@ async function pollProgress() {
 
 function updateStepStatus(stepNumber, status) {
     const stepEl = document.getElementById(`step-${stepNumber}`);
+
+    // Skip if step doesn't exist (e.g., step 4 in workflow 2)
+    if (!stepEl) {
+        console.log(`Step ${stepNumber} element not found - skipping`);
+        return;
+    }
+
     const iconEl = stepEl.querySelector('.step-icon');
     const statusEl = stepEl.querySelector('.step-status');
 
