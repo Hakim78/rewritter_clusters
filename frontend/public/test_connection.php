@@ -5,7 +5,7 @@
  */
 
 // Configuration de l'URL du backend Python
-define('PYTHON_API_URL', 'http://localhost:5001');
+define('PYTHON_API_URL', '/api');
 
 /**
  * Fonction pour faire des appels à l'API Python

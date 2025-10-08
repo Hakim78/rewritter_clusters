@@ -162,11 +162,17 @@ requireAdmin(); // Protection admin
 async function loadStats() {
     try {
         // Charger le nombre d'utilisateurs
-        const response = await fetch('../api/users/list.php');
-        const data = await response.json();
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch('/api/admin/stats', {
+		headers: {
+	             'Authorization': `Bearer ${token}`
+	    }
+	});
+	
+	const data = await response.json();
 
-        if (data.success && data.users) {
-            document.getElementById('stat-users').textContent = data.users.length;
+        if (data.success && data.stats) {
+            document.getElementById('stat-users').textContent = data.stats.total || '-';
         }
     } catch (error) {
         console.error('Erreur chargement stats:', error);

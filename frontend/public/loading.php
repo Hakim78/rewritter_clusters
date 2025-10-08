@@ -311,7 +311,7 @@ async function startWorkflow(data) {
     try {
         // Appel API pour démarrer le workflow
        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`http://localhost:5001/api/workflow${workflowType}`, {
+        const response = await fetch(`/api/workflow${workflowType}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -352,7 +352,7 @@ async function pollProgress() {
     pollingInterval = setInterval(async () => {
         try {
             const token = localStorage.getItem('auth_token');
-            const response = await fetch(`http://localhost:5001/api/workflow-progress/${workflowId}`, {
+            const response = await fetch(`/api/workflow-progress/${workflowId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

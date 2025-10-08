@@ -104,7 +104,7 @@ $dirsStatus = checkDirectories();
         <div class="space-y-2 text-sm">
             <div class="flex justify-between">
                 <span class="text-gray-600">URL:</span>
-                <span class="font-mono text-gray-900">http://localhost:5001</span>
+                <span class="font-mono text-gray-900">/api</span>
             </div>
             <div class="flex justify-between">
                 <span class="text-gray-600">Statut:</span>

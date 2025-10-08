@@ -112,7 +112,7 @@ requireAdmin(); // Protection admin
 </div>
 
 <script>
-const API_URL = '<?php echo getenv('PYTHON_API_URL') ?: 'http://localhost:5001'; ?>';
+const API_URL = '';
 const token = localStorage.getItem('auth_token');
 
 // Charger les utilisateurs au chargement de la page

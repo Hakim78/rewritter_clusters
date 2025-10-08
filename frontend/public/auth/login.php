@@ -137,7 +137,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     
     try {
         // Appel API de connexion
-        const response = await fetch('<?php echo getenv('PYTHON_API_URL') ?: 'http://localhost:5001'; ?>/api/auth/login', {
+        const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

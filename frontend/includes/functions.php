@@ -149,29 +149,29 @@ function requireAdmin() {
  * @return bool - True si le token est valide, false sinon
  */
 function checkAuthToken($token) {
-    if (empty($token)) {
-        return false;
-    }
-    
-    try {
-        // Appel à l'API de vérification
-        $response = callPythonAPI('/api/auth/verify', 'POST', [
-            'token' => $token
-        ]);
-        
-        // Vérifier la réponse
-        if ($response['success'] && 
-            isset($response['data']['success']) && 
-            $response['data']['success'] === true &&
-            isset($response['data']['valid']) &&
-            $response['data']['valid'] === true) {
-            return true;
+	if (empty($token)) { 
+		return false;
+	}
+
+	try  {
+		// call api vérification flask
+		$response = callPythonAPI('/api/auth/verify', 'POST', [
+			'token' => $token
+	]);
+
+	// verify response
+	if ($response['success'] &&
+		isset($response['data']['success']) &&
+		$response['data']['success'] === true &&
+            	isset($response['data']['valid']) &&
+            	$response['data']['valid'] === true) {
+            	return true;
         }
         
         return false;
         
     } catch (Exception $e) {
-        logMessage("Erreur vérification token: " . $e->getMessage(), 'ERROR');
+        error_log("Erreur checkAuthToken: " . $e->getMessage());
         return false;
     }
 }

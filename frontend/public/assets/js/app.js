@@ -5,7 +5,7 @@
 
 // Configuration globale
 const CONFIG = {
-    API_URL: 'http://localhost:5001',
+    API_URL: '',
     TIMEOUT: 300000 // 5 minutes
 };
 
