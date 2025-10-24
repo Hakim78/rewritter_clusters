@@ -218,7 +218,7 @@ def workflow1():
                     input_params=data,
                     total_steps=4
                 )
-
+                
                 # Progress callback avec DB
                 def update_progress_with_db(step, status, progress_percent=None):
                     # Update en mémoire
@@ -227,47 +227,47 @@ def workflow1():
                         workflow_progress[workflow_id]['step_details'][f'step_{step}']['status'] = status
                         if progress_percent:
                             workflow_progress[workflow_id]['progress_percent'] = progress_percent
-
+                    
                     # Update en DB
                     workflow_service.update_progress(workflow_id, progress_percent or (step * 25), step)
                     logger.info(f"Progress update: Workflow {workflow_id} - Step {step} - {status}")
-
+                
                 # Execute workflow
                 import time
                 start_time = time.time()
                 result = workflow_manager_1.execute_workflow1_sync(data, progress_callback=update_progress_with_db)
                 generation_time = int(time.time() - start_time)
 
-                # ===== NOUVEAU : Sauvegarder dans MinIO =====
-                if result.get('status') == 'success' and 'article' in result:
-                    article = result['article']
+                # save in minio
+                        if result.get('status') == 'success' and 'article' in result:
+                            article = result['article']
+                            
+                            # Sauvegarder HTML
+                            article_html = article.get('html_content', '')
+                            workflow_service.save_to_minio(workflow_id, 'article_main.html', article_html, compress=True)
+                            
+                            # Sauvegarder métadonnées complètes
+                            import json
+                            metadata = {
+                                'seo_title': article.get('seo_title', ''),
+                                'meta_description': article.get('meta_description', ''),
+                                'wordpress_excerpt': article.get('wordpress_excerpt', ''),
+                                'image_url': article.get('image_url', ''),
+                                'faq_json': article.get('faq_json', []),
+                                'secondary_keywords': article.get('secondary_keywords', []),
+                                'word_count': article.get('word_count', 0)
+                            }
+                            workflow_service.save_to_minio(workflow_id, 'metadata.json', json.dumps(metadata, ensure_ascii=False), compress=True)
 
-                    # Sauvegarder HTML
-                    article_html = article.get('html_content', '')
-                    workflow_service.save_to_minio(workflow_id, 'article_main.html', article_html, compress=True)
+                            # Marquer comme completed
+                            workflow_service.complete_workflow(workflow_id, result, generation_time)
 
-                    # Sauvegarder métadonnées complètes
-                    import json
-                    metadata = {
-                        'seo_title': article.get('seo_title', ''),
-                        'meta_description': article.get('meta_description', ''),
-                        'wordpress_excerpt': article.get('wordpress_excerpt', ''),
-                        'image_url': article.get('image_url', ''),
-                        'faq_json': article.get('faq_json', []),
-                        'secondary_keywords': article.get('secondary_keywords', []),
-                        'word_count': article.get('word_count', 0)
-                    }
-                    workflow_service.save_to_minio(workflow_id, 'metadata.json', json.dumps(metadata, ensure_ascii=False), compress=True)
-
-                    # Marquer comme completed
-                    workflow_service.complete_workflow(workflow_id, result, generation_time)
-
-                    workflow_progress[workflow_id].update({
-                        'status': 'completed',
-                        'result': result
-                    })
-                else:
-                    workflow_service.fail_workflow(workflow_id, result.get('error', 'Unknown error'))
+                            workflow_progress[workflow_id].update({
+                                'status': 'completed',
+                                'result': result
+                            })
+                        else:
+                            workflow_service.fail_workflow(workflow_id, result.get('error', 'Unknown error'))
                     workflow_progress[workflow_id].update({
                         'status': 'error',
                         'error': result.get('error', 'Unknown error')
@@ -280,7 +280,7 @@ def workflow1():
                     'status': 'error',
                     'error': str(e)
                 })
-
+        
         # Start workflow in background thread
         thread = threading.Thread(target=execute_workflow_async)
         thread.start()
@@ -442,7 +442,7 @@ def workflow2():
                     input_params=data,
                     total_steps=3
                 )
-
+                
                 # Progress callback avec DB
                 def update_progress_with_db(step, status, progress_percent=None):
                     if workflow_id in workflow_progress:
@@ -450,10 +450,10 @@ def workflow2():
                         workflow_progress[workflow_id]['step_details'][f'step_{step}']['status'] = status
                         if progress_percent:
                             workflow_progress[workflow_id]['progress_percent'] = progress_percent
-
+                    
                     workflow_service.update_progress(workflow_id, progress_percent or (step * 33), step)
                     logger.info(f"Progress update: Workflow {workflow_id} - Step {step} - {status}")
-
+                
                 # Execute workflow
                 import time
                 start_time = time.time()
@@ -462,12 +462,13 @@ def workflow2():
 
                 # ===== NOUVEAU : Sauvegarder dans MinIO =====
                 if result.get('status') == 'success' and 'article' in result:
+
                     article = result['article']
 
                     # Sauvegarder HTML
                     article_html = article.get('html_content', '')
                     workflow_service.save_to_minio(workflow_id, 'article_main.html', article_html, compress=True)
-
+                    
                     # Sauvegarder métadonnées complètes
                     import json
                     metadata = {
@@ -583,7 +584,7 @@ def workflow3():
                     input_params=data,
                     total_steps=4
                 )
-
+                
                 # Progress callback avec DB
                 def update_progress_with_db(step, status, progress_percent=None):
                     if workflow_id in workflow_progress:
@@ -591,10 +592,10 @@ def workflow3():
                         workflow_progress[workflow_id]['step_details'][f'step_{step}']['status'] = status
                         if progress_percent:
                             workflow_progress[workflow_id]['progress_percent'] = progress_percent
-
+                    
                     workflow_service.update_progress(workflow_id, progress_percent or (step * 25), step)
                     logger.info(f"Progress update: Workflow {workflow_id} - Step {step} - {status}")
-
+                
                 # Execute workflow
                 import time
                 start_time = time.time()
@@ -604,14 +605,14 @@ def workflow3():
                 # ===== NOUVEAU : Sauvegarder dans MinIO =====
                 if result.get('status') == 'success' and 'cluster' in result:
                     import json
-
+                    
                     # Sauvegarder le pilier
                     if 'pillar' in result['cluster']:
                         pillar = result['cluster']['pillar']
                         pillar_html = pillar.get('html_content', '')
                         workflow_service.save_to_minio(workflow_id, 'pillar.html', pillar_html, compress=True)
                         workflow_service.save_to_minio(workflow_id, 'article_main.html', pillar_html, compress=True)
-
+                        
                         # Métadonnées pilier
                         pillar_metadata = {
                             'seo_title': pillar.get('seo_title', ''),
@@ -629,7 +630,7 @@ def workflow3():
                         for i, satellite in enumerate(result['cluster']['satellites'], 1):
                             sat_html = satellite.get('html_content', '')
                             workflow_service.save_to_minio(workflow_id, f'satellite_{i}.html', sat_html, compress=True)
-
+                            
                             # Métadonnées satellite
                             sat_metadata = {
                                 'seo_title': satellite.get('seo_title', ''),
@@ -644,24 +645,6 @@ def workflow3():
 
                     workflow_service.complete_workflow(workflow_id, result, generation_time)
 
-                    workflow_progress[workflow_id].update({
-                        'status': 'completed',
-                        'result': result
-                    })
-                else:
-                    workflow_service.fail_workflow(workflow_id, result.get('error', 'Unknown error'))
-                    workflow_progress[workflow_id].update({
-                        'status': 'error',
-                        'error': result.get('error', 'Unknown error')
-                    })
-
-            except Exception as e:
-                logger.error(f"Workflow {workflow_id} failed: {str(e)}", exc_info=True)
-                workflow_service.fail_workflow(workflow_id, str(e))
-                workflow_progress[workflow_id].update({
-                    'status': 'error',
-                    'error': str(e)
-                })
 
         # Start workflow in background thread
         thread = threading.Thread(target=execute_workflow_async)
@@ -696,10 +679,10 @@ def get_user_workflows(user_id):
                 'status': 'error',
                 'message': 'Accès non autorisé'
             }), 403
-
+        
         limit = int(request.args.get('limit', 50))
         workflows = workflow_service.get_user_workflows(user_id, limit)
-
+        
         return jsonify({
             'status': 'success',
             'workflows': workflows,
@@ -756,6 +739,5 @@ if __name__ == '__main__':
     print("   • Admin Users: GET http://localhost:5001/api/admin/users")
     print("   • Workflows: POST http://localhost:5001/api/workflow1/2/3")
     print("\n⚠️  Les workflows nécessitent maintenant un token JWT!\n")
-
+    
     app.run(host='0.0.0.0', port=5001, debug=True)
-

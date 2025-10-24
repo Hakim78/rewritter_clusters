@@ -64,8 +64,11 @@ class PillarRewriter:
             )
 
             rewritten_content = response.content[0].text
-
-            # Parse the structured response
+	    
+            logger.info(f"===== PILLAR CLAUDE RESPONSE (first 1000 chars) =====")
+            logger.info(rewritten_content[:1000])
+            logger.info(f"===== PILLAR CLAUDE RESPONSE LENGTH: {len(rewritten_content)} =====")	
+	    # Parse the structured response
             parsed_article = self._parse_pillar_response(rewritten_content)
 
             processing_time = round(time.time() - start_time, 2)
@@ -127,6 +130,7 @@ class PillarRewriter:
         # Prepare variables
         variables = {
             'ORIGINAL_TITLE': pillar_data.get('title', ''),
+            'PILLAR_TITLE': pillar_data.get('title', ''),
             'ORIGINAL_CONTENT': pillar_data.get('content_html', ''),
             'ORIGINAL_TEXT': pillar_data.get('content_text', '')[:5000],
             'WORD_COUNT': str(pillar_data.get('word_count', 0)),
