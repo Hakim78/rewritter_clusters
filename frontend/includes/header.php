@@ -93,6 +93,10 @@ if ($inAdminFolder) {
                             <i class="fas fa-sitemap mr-2"></i>Cluster
                         </a>
                         
+			<a href="/workflows.php"
+   			   class="px-3 py-2 rounded-lg <?php echo $currentPage === 'workflows.php' ? 'bg-purple-100 text-purple-700 font-bold' : 'text-gray-600 hover:bg-gray-100'; ?> transition">
+			    <i class="fas fa-history mr-2"></i>Historique
+			</a>	
                         <?php if ($isAdminUser): ?>
                             <!-- Menu admin -->
                             <a href="/admin/index.php"
@@ -158,6 +162,9 @@ if ($inAdminFolder) {
                     <a href="/option3.php" class="block py-2 px-4 rounded-lg text-gray-600 hover:bg-gray-100 mb-1">
                         <i class="fas fa-sitemap mr-2"></i>Créer un cluster
                     </a>
+		    <a href="/workflows.php" class="block py-2 px-4 rounded-lg text-gray-600 hover:bg-gray-100 mb-1">
+			<i class="fas fa-history mr-2"></i>Historique
+		    </a>
                     
                     <?php if ($isAdminUser): ?>
                         <a href="/admin/users.php" class="block py-2 px-4 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 font-semibold mb-1">

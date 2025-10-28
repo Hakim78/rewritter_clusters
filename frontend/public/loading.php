@@ -260,6 +260,14 @@ $workflowType = isset($_GET['workflow']) ? (int)$_GET['workflow'] : 1;
     </div>
 </div>
 
+<!-- Bouton accès historique (fixé en bas à droite) -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <a href="/workflows.php" 
+           class="inline-flex items-center px-4 py-3 bg-white text-purple-600 font-medium rounded-lg shadow-lg hover:shadow-xl transition-all border-2 border-purple-600">
+            <i class="fas fa-history mr-2"></i>
+            Voir l'historique
+        </a>
+    </div>
 <script src="assets/js/app.js"></script>
 <script>
 // Configuration
@@ -284,9 +292,11 @@ const loadingTips = [
 
 let currentTipIndex = 0;
 
-// Démarrage
-document.addEventListener('DOMContentLoaded', function() {
-    // Récupérer les données du formulaire depuis sessionStorage
+document.addEventListener('DOMContentLoaded', async function() {
+    // 1. D'abord vérifier s'il y a un workflow en cours
+    await checkForExistingWorkflow();
+    
+    // 2. Récupérer les données du formulaire depuis sessionStorage
     const formData = sessionStorage.getItem('workflowFormData');
 
     if (!formData) {
@@ -307,11 +317,93 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(rotateTip, 8000);
 });
 
+// Fonction pour vérifier s'il existe un workflow en cours
+async function checkForExistingWorkflow() {
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch('/api/workflows?limit=10', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+        
+        if (data.success && data.workflows) {
+            // Chercher un workflow "processing" du même type
+            const processingWorkflow = data.workflows.find(w => 
+                w.status === 'processing' && 
+                w.workflow_type === getWorkflowTypeString()
+            );
+
+            if (processingWorkflow) {
+                // Afficher une notification
+                const resume = confirm(
+                    `Un workflow de type "${getWorkflowTypeLabel()}" est déjà en cours.\n\n` +
+                    `Voulez-vous le reprendre ?\n\n` +
+                    `- OUI : Reprendre le workflow en cours\n` +
+                    `- NON : Démarrer un nouveau workflow`
+                );
+
+                if (resume) {
+                    // Reprendre le workflow existant
+                    workflowId = processingWorkflow.workflow_id;
+                    console.log('Reprise du workflow:', workflowId);
+                    
+                    // Nettoyer sessionStorage pour éviter de relancer
+                    sessionStorage.removeItem('workflowFormData');
+                    
+                    // Démarrer le polling directement
+                    pollProgress();
+                    startElapsedTimeCounter();
+                    setInterval(rotateTip, 8000);
+                    
+                    // Empêcher le démarrage d'un nouveau workflow
+                    return true;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Erreur lors de la vérification des workflows:', error);
+    }
+    
+    return false;
+}
+
+// Helper pour obtenir le type de workflow en string
+function getWorkflowTypeString() {
+    switch(workflowType) {
+        case 1: return 'scratch';
+        case 2: return 'rewrite';
+        case 3: return 'cluster';
+        default: return 'scratch';
+    }
+}
+
+// Helper pour obtenir le label du workflow
+function getWorkflowTypeLabel() {
+    switch(workflowType) {
+        case 1: return 'Création from scratch';
+        case 2: return 'Réécriture';
+        case 3: return 'Cluster';
+        default: return 'Création';
+    }
+}
+
 async function startWorkflow(data) {
     try {
+        console.log('=== DEBUG START WORKFLOW ===');
+        console.log('1. Workflow Type:', workflowType);
+        console.log('2. Data to send:', data);
+        
         // Appel API pour démarrer le workflow
-       const token = localStorage.getItem('auth_token');
-        const response = await fetch(`/api/workflow${workflowType}`, {
+        const token = localStorage.getItem('auth_token');
+        console.log('3. Token:', token ? 'Present' : 'Missing');
+        
+        const url = `/api/workflow${workflowType}`;
+        console.log('4. Calling URL:', url);
+        
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -319,7 +411,12 @@ async function startWorkflow(data) {
             },
             body: JSON.stringify(data)
         });
+        
+        console.log('5. Response status:', response.status);
+        console.log('6. Response ok:', response.ok);
+        
         const startResult = await response.json();
+        console.log('7. Response JSON:', startResult);
 
         if (startResult.status === 'error') {
             throw new Error(startResult.error || startResult.message || 'Workflow failed');
@@ -327,16 +424,21 @@ async function startWorkflow(data) {
 
         // Get workflow ID
         workflowId = startResult.workflow_id;
+        console.log('8. Workflow ID received:', workflowId);
 
         if (!workflowId) {
             throw new Error('No workflow ID returned');
         }
 
+        console.log('9. Starting polling...');
         // Start polling for progress
         pollProgress();
 
     } catch (error) {
-        console.error('Workflow error:', error);
+        console.error('=== WORKFLOW ERROR ===');
+        console.error('Error details:', error);
+        console.error('Error stack:', error.stack);
+        
         updateStepStatus(currentStep || 1, 'error');
         Toast.show(`Erreur: ${error.message}`, 'error');
 
