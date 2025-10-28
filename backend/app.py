@@ -23,13 +23,13 @@ from backend.api.admin import admin_bp
 from backend.middleware.auth_middleware import token_required
 from backend.routes.workflow_routes import workflow_bp
 
+# Import Celery tasks
+from celery_tasks.workflow_tasks import workflow1_task, workflow2_task, workflow3_task
+
 # Import workflow service
 from services.workflow_service import WorkflowService
 
-# Import workflow managers
-from workflows.workflow_1.workflow_manager import WorkflowManager as WorkflowManager1
-from workflows.workflow_2.workflow_manager import WorkflowManager as WorkflowManager2
-from workflows.workflow_3.workflow_manager import WorkflowManager as WorkflowManager3
+# Import workflow managers (pour preview seulement)
 from workflows.workflow_2.steps.article_scraper import ArticleScraper
 
 # Charger les variables d'environnement
@@ -43,21 +43,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app)  # Permettre les requêtes cross-origin depuis PHP
+CORS(app)
 
 # Configuration
 app.config['DEBUG'] = True
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 
-# Initialize workflow managers
-workflow_manager_1 = WorkflowManager1()
-workflow_manager_2 = WorkflowManager2()
-workflow_manager_3 = WorkflowManager3()
+# Initialize services
 article_scraper = ArticleScraper()
 workflow_service = WorkflowService()
-
-# Store workflow progress in memory (in production, use Redis or database)
-workflow_progress = {}
 
 # ========================================
 # ENREGISTREMENT DES BLUEPRINTS
@@ -65,6 +59,7 @@ workflow_progress = {}
 app.register_blueprint(auth_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(workflow_bp, url_prefix='/api')
+
 # ========================================
 # ROUTES DE TEST
 # ========================================
@@ -79,27 +74,59 @@ def test():
 
 @app.route('/api/workflow-progress/<workflow_id>', methods=['GET'])
 def get_workflow_progress(workflow_id):
-    """Get real-time progress of a workflow"""
-    if workflow_id in workflow_progress:
-        return jsonify(workflow_progress[workflow_id])
-    else:
+    """Get real-time progress of a workflow via Celery"""
+    try:
+        from celery_config import celery_app
+        
+        # Récupérer le résultat de la task Celery
+        task = celery_app.AsyncResult(workflow_id)
+        
+        if task.state == 'PENDING':
+            response = {
+                'status': 'pending',
+                'current_step': 0,
+                'progress_percent': 0
+            }
+        elif task.state == 'PROGRESS':
+            response = {
+                'status': 'in_progress',
+                'current_step': task.info.get('current_step', 0),
+                'total_steps': task.info.get('total_steps', 4),
+                'progress_percent': task.info.get('progress', 0)
+            }
+        elif task.state == 'SUCCESS':
+            response = {
+                'status': 'completed',
+                'result': task.result
+            }
+        elif task.state == 'FAILURE':
+            response = {
+                'status': 'error',
+                'error': str(task.info)
+            }
+        else:
+            response = {
+                'status': task.state.lower(),
+                'info': str(task.info)
+            }
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        logger.error(f"Error getting workflow progress: {str(e)}")
         return jsonify({
-            'status': 'not_found',
-            'message': 'Workflow not found'
-        }), 404
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
-# Route de test avec données POST
 @app.route('/api/test-post', methods=['POST'])
 def test_post():
     """Test d'envoi de données depuis PHP"""
     data = request.get_json()
-
-    # Gestion du domaine personnalisé
     domain = data.get('domain', 'N/A')
     if domain == 'Autre' and data.get('custom_domain'):
         domain = data.get('custom_domain')
 
-    # Gestion des liens
     internal_links = data.get('internal_links', [])
     external_links = data.get('external_links', [])
 
@@ -109,7 +136,6 @@ def test_post():
     if external_links:
         links_info += f"<p><strong>Liens externes:</strong> {', '.join(external_links)}</p>"
 
-    # Traitement des données pour test
     processed_data = {
         'processed_title': f"Article de test sur : {data.get('keyword', 'sujet inconnu')}",
         'processed_content': f"""<h1>Article de test</h1>
@@ -135,12 +161,12 @@ def test_post():
     })
 
 # ========================================
-# WORKFLOWS (PROTÉGÉS PAR AUTHENTIFICATION)
+# WORKFLOWS (PROTÉGÉS PAR AUTHENTIFICATION) - CELERY
 # ========================================
 @app.route('/api/workflow1', methods=['POST'])
 @token_required
 def workflow1():
-    """Option 1: Création d'un nouvel article SEO (PROTÉGÉ)"""
+    """Option 1: Création d'un nouvel article SEO (PROTÉGÉ) - CELERY"""
     try:
         data = request.get_json()
         logger.info(f"Received workflow1 request with data: {data}")
@@ -158,7 +184,7 @@ def workflow1():
         if data.get('domain') == 'Autre' and data.get('custom_domain'):
             data['domain'] = data.get('custom_domain')
 
-        # Traitement des liens (s'assurer qu'ils sont des listes)
+        # Traitement des liens
         if 'internal_links[]' in data:
             data['internal_links'] = data.pop('internal_links[]') if isinstance(data.get('internal_links[]'), list) else [data.pop('internal_links[]')]
 
@@ -178,117 +204,16 @@ def workflow1():
         from datetime import datetime
         workflow_id = f"wf1_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
 
-        # Initialize progress tracking
-        workflow_progress[workflow_id] = {
-            'workflow_id': workflow_id,
-            'status': 'in_progress',
-            'current_step': 1,
-            'total_steps': 4,
-            'progress_percent': 10,
-            'step_details': {
-                'step_1': {'status': 'in_progress', 'name': 'Analyse du site'},
-                'step_2': {'status': 'pending', 'name': 'Analyse stratégique'},
-                'step_3': {'status': 'pending', 'name': 'Rédaction de l\'article'},
-                'step_4': {'status': 'pending', 'name': 'Génération de l\'image'}
-            }
-        }
+        # Lancer la task Celery
+        task = workflow1_task.apply_async(
+            args=[workflow_id, g.user_id, data],
+            task_id=workflow_id
+        )
 
-        # Progress callback
-        def update_progress(step, status, progress_percent=None):
-            if workflow_id in workflow_progress:
-                workflow_progress[workflow_id]['current_step'] = step
-                workflow_progress[workflow_id]['step_details'][f'step_{step}']['status'] = status
-                if progress_percent:
-                    workflow_progress[workflow_id]['progress_percent'] = progress_percent
-                logger.info(f"Progress update: Workflow {workflow_id} - Step {step} - {status}")
-
-        # Capturer user_id avant le thread pour le contexte Flask
-        current_user_id = g.user_id
-
-        # Execute workflow asynchronously
-        import threading
-
-        def execute_workflow_async():
-            try:
-                # ===== NOUVEAU : Créer workflow en DB =====
-                workflow_db = workflow_service.create_workflow(
-                    user_id=current_user_id,
-                    workflow_id=workflow_id,
-                    workflow_type='scratch',
-                    input_params=data,
-                    total_steps=4
-                )
-
-                # Progress callback avec DB
-                def update_progress_with_db(step, status, progress_percent=None):
-                    # Update en mémoire
-                    if workflow_id in workflow_progress:
-                        workflow_progress[workflow_id]['current_step'] = step
-                        workflow_progress[workflow_id]['step_details'][f'step_{step}']['status'] = status
-                        if progress_percent:
-                            workflow_progress[workflow_id]['progress_percent'] = progress_percent
-
-                    # Update en DB
-                    workflow_service.update_progress(workflow_id, progress_percent or (step * 25), step)
-                    logger.info(f"Progress update: Workflow {workflow_id} - Step {step} - {status}")
-
-                # Execute workflow
-                import time
-                start_time = time.time()
-                result = workflow_manager_1.execute_workflow1_sync(data, progress_callback=update_progress_with_db)
-                generation_time = int(time.time() - start_time)
-
-                # ===== NOUVEAU : Sauvegarder dans MinIO =====
-                if result.get('status') == 'success' and 'article' in result:
-                    article = result['article']
-
-                    # Sauvegarder HTML
-                    article_html = article.get('html_content', '')
-                    workflow_service.save_to_minio(workflow_id, 'article_main.html', article_html, compress=True)
-
-                    # Sauvegarder métadonnées complètes
-                    import json
-                    metadata = {
-                        'seo_title': article.get('seo_title', ''),
-                        'meta_description': article.get('meta_description', ''),
-                        'wordpress_excerpt': article.get('wordpress_excerpt', ''),
-                        'image_url': article.get('image_url', ''),
-                        'faq_json': article.get('faq_json', []),
-                        'secondary_keywords': article.get('secondary_keywords', []),
-                        'word_count': article.get('word_count', 0)
-                    }
-                    workflow_service.save_to_minio(workflow_id, 'metadata.json', json.dumps(metadata, ensure_ascii=False), compress=True)
-
-                    # Marquer comme completed
-                    workflow_service.complete_workflow(workflow_id, result, generation_time)
-
-                    workflow_progress[workflow_id].update({
-                        'status': 'completed',
-                        'result': result
-                    })
-                else:
-                    workflow_service.fail_workflow(workflow_id, result.get('error', 'Unknown error'))
-                    workflow_progress[workflow_id].update({
-                        'status': 'error',
-                        'error': result.get('error', 'Unknown error')
-                    })
-
-            except Exception as e:
-                logger.error(f"Workflow {workflow_id} failed: {str(e)}", exc_info=True)
-                workflow_service.fail_workflow(workflow_id, str(e))
-                workflow_progress[workflow_id].update({
-                    'status': 'error',
-                    'error': str(e)
-                })
-
-        # Start workflow in background thread
-        thread = threading.Thread(target=execute_workflow_async)
-        thread.start()
-
-        # Return workflow ID for polling
         return jsonify({
             'status': 'started',
             'workflow_id': workflow_id,
+            'task_id': task.id,
             'message': 'Workflow started successfully'
         })
 
@@ -337,7 +262,6 @@ def test_workflow2():
     try:
         data = request.get_json()
 
-        # Process test data
         result = {
             'status': 'success',
             'message': 'Test workflow 2 réussi',
@@ -366,7 +290,7 @@ def test_workflow2():
 @app.route('/api/workflow2', methods=['POST'])
 @token_required
 def workflow2():
-    """Option 2: Réécriture d'un article existant (PROTÉGÉ)"""
+    """Option 2: Réécriture d'un article existant (PROTÉGÉ) - CELERY"""
     try:
         data = request.get_json()
         logger.info(f"Received workflow2 request with data: {data}")
@@ -403,113 +327,16 @@ def workflow2():
         from datetime import datetime
         workflow_id = f"wf2_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
 
-        # Initialize progress tracking
-        workflow_progress[workflow_id] = {
-            'workflow_id': workflow_id,
-            'status': 'in_progress',
-            'current_step': 1,
-            'total_steps': 3,
-            'progress_percent': 10,
-            'step_details': {
-                'step_1': {'status': 'in_progress', 'name': 'Extraction du contenu'},
-                'step_2': {'status': 'pending', 'name': 'Réécriture et optimisation'},
-                'step_3': {'status': 'pending', 'name': 'Génération de l\'image'}
-            }
-        }
+        # Lancer la task Celery
+        task = workflow2_task.apply_async(
+            args=[workflow_id, g.user_id, data],
+            task_id=workflow_id
+        )
 
-        # Progress callback
-        def update_progress(step, status, progress_percent=None):
-            if workflow_id in workflow_progress:
-                workflow_progress[workflow_id]['current_step'] = step
-                workflow_progress[workflow_id]['step_details'][f'step_{step}']['status'] = status
-                if progress_percent:
-                    workflow_progress[workflow_id]['progress_percent'] = progress_percent
-                logger.info(f"Progress update: Workflow {workflow_id} - Step {step} - {status}")
-
-        # Capturer user_id avant le thread
-        current_user_id = g.user_id
-
-        # Execute workflow asynchronously
-        import threading
-
-        def execute_workflow_async():
-            try:
-                # ===== NOUVEAU : Créer workflow en DB =====
-                workflow_db = workflow_service.create_workflow(
-                    user_id=current_user_id,
-                    workflow_id=workflow_id,
-                    workflow_type='rewrite',
-                    input_params=data,
-                    total_steps=3
-                )
-
-                # Progress callback avec DB
-                def update_progress_with_db(step, status, progress_percent=None):
-                    if workflow_id in workflow_progress:
-                        workflow_progress[workflow_id]['current_step'] = step
-                        workflow_progress[workflow_id]['step_details'][f'step_{step}']['status'] = status
-                        if progress_percent:
-                            workflow_progress[workflow_id]['progress_percent'] = progress_percent
-
-                    workflow_service.update_progress(workflow_id, progress_percent or (step * 33), step)
-                    logger.info(f"Progress update: Workflow {workflow_id} - Step {step} - {status}")
-
-                # Execute workflow
-                import time
-                start_time = time.time()
-                result = workflow_manager_2.execute_workflow2_sync(data, progress_callback=update_progress_with_db)
-                generation_time = int(time.time() - start_time)
-
-                # ===== NOUVEAU : Sauvegarder dans MinIO =====
-                if result.get('status') == 'success' and 'article' in result:
-                    article = result['article']
-
-                    # Sauvegarder HTML
-                    article_html = article.get('html_content', '')
-                    workflow_service.save_to_minio(workflow_id, 'article_main.html', article_html, compress=True)
-
-                    # Sauvegarder métadonnées complètes
-                    import json
-                    metadata = {
-                        'seo_title': article.get('seo_title', ''),
-                        'meta_description': article.get('meta_description', ''),
-                        'wordpress_excerpt': article.get('wordpress_excerpt', ''),
-                        'image_url': article.get('image_url', ''),
-                        'faq_json': article.get('faq_json', []),
-                        'secondary_keywords': article.get('secondary_keywords', []),
-                        'word_count': article.get('word_count', 0)
-                    }
-                    workflow_service.save_to_minio(workflow_id, 'metadata.json', json.dumps(metadata, ensure_ascii=False), compress=True)
-
-                    workflow_service.complete_workflow(workflow_id, result, generation_time)
-
-                    workflow_progress[workflow_id].update({
-                        'status': 'completed',
-                        'result': result
-                    })
-                else:
-                    workflow_service.fail_workflow(workflow_id, result.get('error', 'Unknown error'))
-                    workflow_progress[workflow_id].update({
-                        'status': 'error',
-                        'error': result.get('error', 'Unknown error')
-                    })
-
-            except Exception as e:
-                logger.error(f"Workflow {workflow_id} failed: {str(e)}", exc_info=True)
-                workflow_service.fail_workflow(workflow_id, str(e))
-                workflow_progress[workflow_id].update({
-                    'status': 'error',
-                    'error': str(e)
-                })
-
-        # Start workflow in background thread
-        thread = threading.Thread(target=execute_workflow_async)
-        thread.start()
-
-        # Return workflow ID for polling
         return jsonify({
             'status': 'started',
             'workflow_id': workflow_id,
+            'task_id': task.id,
             'message': 'Workflow started successfully'
         })
 
@@ -523,7 +350,7 @@ def workflow2():
 @app.route('/api/workflow3', methods=['POST'])
 @token_required
 def workflow3():
-    """Option 3: Cluster Generation - 1 Pillar + 3 Satellites (PROTÉGÉ)"""
+    """Option 3: Cluster Generation - 1 Pillar + 3 Satellites (PROTÉGÉ) - CELERY"""
     try:
         data = request.get_json()
         logger.info(f"Received workflow3 request with data: {data}")
@@ -543,134 +370,16 @@ def workflow3():
         from datetime import datetime
         workflow_id = f"wf3_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
 
-        # Initialize progress tracking (4 steps for workflow 3)
-        workflow_progress[workflow_id] = {
-            'workflow_id': workflow_id,
-            'status': 'in_progress',
-            'current_step': 1,
-            'total_steps': 4,
-            'progress_percent': 10,
-            'step_details': {
-                'step_1': {'status': 'in_progress', 'name': 'Analyse du pilier'},
-                'step_2': {'status': 'pending', 'name': 'Réécriture du pilier'},
-                'step_3': {'status': 'pending', 'name': 'Génération des satellites'},
-                'step_4': {'status': 'pending', 'name': 'Génération des images'}
-            }
-        }
+        # Lancer la task Celery
+        task = workflow3_task.apply_async(
+            args=[workflow_id, g.user_id, data],
+            task_id=workflow_id
+        )
 
-        # Progress callback
-        def update_progress(step, status, progress_percent=None):
-            if workflow_id in workflow_progress:
-                workflow_progress[workflow_id]['current_step'] = step
-                workflow_progress[workflow_id]['step_details'][f'step_{step}']['status'] = status
-                if progress_percent:
-                    workflow_progress[workflow_id]['progress_percent'] = progress_percent
-                logger.info(f"Progress update: Workflow {workflow_id} - Step {step} - {status}")
-
-        # Capturer user_id avant le thread
-        current_user_id = g.user_id
-
-        # Execute workflow asynchronously
-        import threading
-
-        def execute_workflow_async():
-            try:
-                # ===== NOUVEAU : Créer workflow en DB =====
-                workflow_db = workflow_service.create_workflow(
-                    user_id=current_user_id,
-                    workflow_id=workflow_id,
-                    workflow_type='cluster',
-                    input_params=data,
-                    total_steps=4
-                )
-
-                # Progress callback avec DB
-                def update_progress_with_db(step, status, progress_percent=None):
-                    if workflow_id in workflow_progress:
-                        workflow_progress[workflow_id]['current_step'] = step
-                        workflow_progress[workflow_id]['step_details'][f'step_{step}']['status'] = status
-                        if progress_percent:
-                            workflow_progress[workflow_id]['progress_percent'] = progress_percent
-
-                    workflow_service.update_progress(workflow_id, progress_percent or (step * 25), step)
-                    logger.info(f"Progress update: Workflow {workflow_id} - Step {step} - {status}")
-
-                # Execute workflow
-                import time
-                start_time = time.time()
-                result = workflow_manager_3.execute_workflow3_sync(data, progress_callback=update_progress_with_db)
-                generation_time = int(time.time() - start_time)
-
-                # ===== NOUVEAU : Sauvegarder dans MinIO =====
-                if result.get('status') == 'success' and 'cluster' in result:
-                    import json
-
-                    # Sauvegarder le pilier
-                    if 'pillar' in result['cluster']:
-                        pillar = result['cluster']['pillar']
-                        pillar_html = pillar.get('html_content', '')
-                        workflow_service.save_to_minio(workflow_id, 'pillar.html', pillar_html, compress=True)
-                        workflow_service.save_to_minio(workflow_id, 'article_main.html', pillar_html, compress=True)
-
-                        # Métadonnées pilier
-                        pillar_metadata = {
-                            'seo_title': pillar.get('seo_title', ''),
-                            'meta_description': pillar.get('meta_description', ''),
-                            'wordpress_excerpt': pillar.get('wordpress_excerpt', ''),
-                            'image_url': pillar.get('image_url', ''),
-                            'faq_json': pillar.get('faq_json', []),
-                            'secondary_keywords': pillar.get('secondary_keywords', []),
-                            'word_count': pillar.get('word_count', 0)
-                        }
-                        workflow_service.save_to_minio(workflow_id, 'pillar_metadata.json', json.dumps(pillar_metadata, ensure_ascii=False), compress=True)
-
-                    # Sauvegarder les satellites
-                    if 'satellites' in result['cluster']:
-                        for i, satellite in enumerate(result['cluster']['satellites'], 1):
-                            sat_html = satellite.get('html_content', '')
-                            workflow_service.save_to_minio(workflow_id, f'satellite_{i}.html', sat_html, compress=True)
-
-                            # Métadonnées satellite
-                            sat_metadata = {
-                                'seo_title': satellite.get('seo_title', ''),
-                                'meta_description': satellite.get('meta_description', ''),
-                                'wordpress_excerpt': satellite.get('wordpress_excerpt', ''),
-                                'image_url': satellite.get('image_url', ''),
-                                'faq_json': satellite.get('faq_json', []),
-                                'secondary_keywords': satellite.get('secondary_keywords', []),
-                                'word_count': satellite.get('word_count', 0)
-                            }
-                            workflow_service.save_to_minio(workflow_id, f'satellite_{i}_metadata.json', json.dumps(sat_metadata, ensure_ascii=False), compress=True)
-
-                    workflow_service.complete_workflow(workflow_id, result, generation_time)
-
-                    workflow_progress[workflow_id].update({
-                        'status': 'completed',
-                        'result': result
-                    })
-                else:
-                    workflow_service.fail_workflow(workflow_id, result.get('error', 'Unknown error'))
-                    workflow_progress[workflow_id].update({
-                        'status': 'error',
-                        'error': result.get('error', 'Unknown error')
-                    })
-
-            except Exception as e:
-                logger.error(f"Workflow {workflow_id} failed: {str(e)}", exc_info=True)
-                workflow_service.fail_workflow(workflow_id, str(e))
-                workflow_progress[workflow_id].update({
-                    'status': 'error',
-                    'error': str(e)
-                })
-
-        # Start workflow in background thread
-        thread = threading.Thread(target=execute_workflow_async)
-        thread.start()
-
-        # Return workflow ID for polling
         return jsonify({
             'status': 'started',
             'workflow_id': workflow_id,
+            'task_id': task.id,
             'message': 'Workflow started successfully'
         })
 
@@ -684,7 +393,6 @@ def workflow3():
 # ========================================
 # ROUTES WORKFLOWS HISTORIQUE
 # ========================================
-
 @app.route('/api/workflows/user/<int:user_id>', methods=['GET'])
 @token_required
 def get_user_workflows(user_id):
@@ -747,7 +455,7 @@ def internal_error(error):
 
 if __name__ == '__main__':
     print("\n" + "="*50)
-    print("🚀 Backend Flask démarré avec succès!")
+    print("🚀 Backend Flask avec Celery démarré!")
     print("="*50)
     print("\n📍 Routes disponibles:")
     print("   • Test API: http://localhost:5001/api/test")
@@ -755,7 +463,8 @@ if __name__ == '__main__':
     print("   • Verify: POST http://localhost:5001/api/auth/verify")
     print("   • Admin Users: GET http://localhost:5001/api/admin/users")
     print("   • Workflows: POST http://localhost:5001/api/workflow1/2/3")
-    print("\n⚠️  Les workflows nécessitent maintenant un token JWT!\n")
+    print("\n⚡ Celery + Redis activés!")
+    print("   • Workers: 10 concurrent")
+    print("   • Flower: http://localhost:5555/flower\n")
 
     app.run(host='0.0.0.0', port=5001, debug=True)
-
